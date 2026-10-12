@@ -1,9 +1,12 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
-  cacheComponents: true,
-  partialPrefetching: true,
+  /* Export as static HTML for GitHub Pages */
+  output: "export",
+  basePath: "/rabies-dashboard",
+  images: {
+    unoptimized: true,
+  },
   turbopack: {
     rules: {
       "*.css": {
