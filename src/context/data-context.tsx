@@ -76,16 +76,21 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   // เรื่องที่ 3: แสดงวงรัศมี 5 กิโลเมตร (เปิดใช้งานเป็นค่าเริ่มต้น)
   const [show5kmRadius, setShow5kmRadius] = useState<boolean>(true);
 
-  // Initialize from localStorage if available
+  // Initialize from localStorage if available (เวอร์ชันข้อมูลจริง 32 หัว ณ วันที่ 15 ตุลาคม 2569)
   useEffect(() => {
     try {
-      const savedPatients = localStorage.getItem('rabies_kalasin_patients');
+      // เคลียร์ข้อมูลที่ทดลองกรอกออกทั้งหมด
+      localStorage.removeItem('rabies_kalasin_patients');
+      localStorage.removeItem('rabies_kalasin_mappoints');
+      localStorage.removeItem('rabies_kalasin_alerts');
+
+      const savedPatients = localStorage.getItem('rabies_kalasin_v269_patients');
       if (savedPatients) setPatients(JSON.parse(savedPatients));
 
-      const savedMapPoints = localStorage.getItem('rabies_kalasin_mappoints');
+      const savedMapPoints = localStorage.getItem('rabies_kalasin_v269_mappoints');
       if (savedMapPoints) setMapPoints(JSON.parse(savedMapPoints));
 
-      const savedAlerts = localStorage.getItem('rabies_kalasin_alerts');
+      const savedAlerts = localStorage.getItem('rabies_kalasin_v269_alerts');
       if (savedAlerts) setAlerts(JSON.parse(savedAlerts));
 
       const savedPdpa = localStorage.getItem('rabies_kalasin_pdpa');
@@ -101,19 +106,19 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   // Save to localStorage when patients change
   useEffect(() => {
     try {
-      localStorage.setItem('rabies_kalasin_patients', JSON.stringify(patients));
+      localStorage.setItem('rabies_kalasin_v269_patients', JSON.stringify(patients));
     } catch {}
   }, [patients]);
 
   useEffect(() => {
     try {
-      localStorage.setItem('rabies_kalasin_mappoints', JSON.stringify(mapPoints));
+      localStorage.setItem('rabies_kalasin_v269_mappoints', JSON.stringify(mapPoints));
     } catch {}
   }, [mapPoints]);
 
   useEffect(() => {
     try {
-      localStorage.setItem('rabies_kalasin_alerts', JSON.stringify(alerts));
+      localStorage.setItem('rabies_kalasin_v269_alerts', JSON.stringify(alerts));
     } catch {}
   }, [alerts]);
 
