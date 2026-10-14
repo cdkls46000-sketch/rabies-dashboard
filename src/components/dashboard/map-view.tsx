@@ -5,13 +5,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useData } from '@/context/data-context';
-import { Eye, EyeOff, Radio } from 'lucide-react';
+import { Radio } from 'lucide-react';
 
 // Dynamically import map component with ssr: false
 const MapInner = dynamic(() => import('./map-inner'), { 
   ssr: false,
   loading: () => (
-    <div className="w-full h-full flex flex-col items-center justify-center bg-slate-100 text-slate-500 gap-2">
+    <div className="w-full h-full min-h-[280px] flex flex-col items-center justify-center bg-slate-100 text-slate-500 gap-2 rounded-md">
       <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
       <span className="text-xs">กำลังโหลดแผนที่ GIS จ.กาฬสินธุ์...</span>
     </div>
@@ -24,12 +24,12 @@ export default function MapView() {
   const activePointsCount = mapPoints.filter(p => !p.year || p.year === selectedYear).length;
 
   return (
-    <Card className="w-full">
-      <CardHeader className="pb-2.5">
+    <Card className="w-full overflow-hidden">
+      <CardHeader className="p-3.5 sm:p-5 pb-2.5">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div>
-            <div className="flex items-center gap-2">
-              <CardTitle className="text-base sm:text-lg">🗺️ แผนที่พิกัดระบาดวิทยา (18 อำเภอ จ.กาฬสินธุ์)</CardTitle>
+            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+              <CardTitle className="text-sm sm:text-base md:text-lg">🗺️ แผนที่พิกัดระบาดวิทยา (18 อำเภอ)</CardTitle>
               <Badge variant="outline" className="text-[10px] bg-blue-50 text-blue-700 border-blue-200">
                 พ.ศ. {selectedYear}
               </Badge>
@@ -46,7 +46,7 @@ export default function MapView() {
               size="sm"
               variant={show5kmRadius ? "default" : "outline"}
               onClick={toggle5kmRadius}
-              className={`h-7 px-2.5 text-xs gap-1.5 transition-all ${
+              className={`h-7 px-2.5 text-xs gap-1.5 transition-all active:scale-95 ${
                 show5kmRadius 
                   ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-xs' 
                   : 'text-slate-600 hover:bg-slate-100'
@@ -60,33 +60,33 @@ export default function MapView() {
         </div>
 
         {/* Legend */}
-        <div className="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-slate-100 text-xs">
-          <div className="flex flex-wrap items-center gap-3 text-muted-foreground">
-            <span className="flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-red-500 inline-block ring-2 ring-red-200"></span> 
-              <span className="text-[11px] text-slate-700">ผลบวก (Lab Positive)</span>
+        <div className="flex flex-wrap items-center justify-between gap-2 pt-1.5 border-t border-slate-100 text-xs">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-muted-foreground">
+            <span className="flex items-center gap-1">
+              <span className="w-2.5 h-2.5 rounded-full bg-red-500 inline-block ring-2 ring-red-200 shrink-0"></span> 
+              <span className="text-[10px] sm:text-[11px] text-slate-700">ผลบวก</span>
             </span>
-            <span className="flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-amber-500 inline-block ring-2 ring-amber-200"></span> 
-              <span className="text-[11px] text-slate-700">สัตว์สงสัย (Suspect)</span>
+            <span className="flex items-center gap-1">
+              <span className="w-2.5 h-2.5 rounded-full bg-amber-500 inline-block ring-2 ring-amber-200 shrink-0"></span> 
+              <span className="text-[10px] sm:text-[11px] text-slate-700">สัตว์สงสัย</span>
             </span>
-            <span className="flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-blue-500 inline-block ring-2 ring-blue-200"></span> 
-              <span className="text-[11px] text-slate-700">ผู้สัมผัสโรค (Exposure)</span>
+            <span className="flex items-center gap-1">
+              <span className="w-2.5 h-2.5 rounded-full bg-blue-500 inline-block ring-2 ring-blue-200 shrink-0"></span> 
+              <span className="text-[10px] sm:text-[11px] text-slate-700">ผู้สัมผัสโรค</span>
             </span>
           </div>
 
           <div className="text-[10px] text-slate-500">
             {show5kmRadius ? (
-              <span className="text-emerald-700 font-medium">⭕ กำลังแสดงวงรัศมี 5,000 ม. ({activePointsCount} จุด)</span>
+              <span className="text-emerald-700 font-medium">⭕ แสดงวงรัศมี 5,000 ม. ({activePointsCount} จุด)</span>
             ) : (
               <span className="text-slate-400">วงรัศมี 5 กม. ปิดอยู่</span>
             )}
           </div>
         </div>
       </CardHeader>
-      <CardContent>
-        <div className="h-[400px] w-full relative z-0">
+      <CardContent className="p-2 sm:p-5 pt-0 sm:pt-0">
+        <div className="h-[280px] sm:h-[350px] md:h-[400px] w-full relative z-0 rounded-md overflow-hidden border border-slate-200">
           <MapInner />
         </div>
       </CardContent>

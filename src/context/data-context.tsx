@@ -50,6 +50,10 @@ interface DataContextType {
   show5kmRadius: boolean;
   setShow5kmRadius: (show: boolean) => void;
   toggle5kmRadius: () => void;
+  // Mobile responsive sidebar drawer
+  isMobileSidebarOpen: boolean;
+  setIsMobileSidebarOpen: (open: boolean) => void;
+  toggleMobileSidebar: () => void;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -61,6 +65,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   const [isNewCaseOpen, setIsNewCaseOpen] = useState(false);
   const [editingPatient, setEditingPatient] = useState<PatientListItem | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   
   // เรื่องที่ 1: ปกปิดชื่อตาม PDPA (เปิดใช้งานเป็นค่าเริ่มต้น)
   const [isPdpaActive, setIsPdpaActive] = useState<boolean>(true);
@@ -325,6 +330,9 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         show5kmRadius,
         setShow5kmRadius,
         toggle5kmRadius,
+        isMobileSidebarOpen,
+        setIsMobileSidebarOpen,
+        toggleMobileSidebar: () => setIsMobileSidebarOpen(prev => !prev),
       }}
     >
       {children}

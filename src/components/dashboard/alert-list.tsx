@@ -11,7 +11,7 @@ const getLevelColor = (level: string) => {
     case 'urgent':
       return 'bg-orange-500 hover:bg-orange-600 text-white';
     case 'warning':
-      return 'bg-yellow-500 hover:bg-yellow-600 text-yellow-950';
+      return 'bg-amber-500 hover:bg-amber-600 text-white';
     case 'info':
       return 'bg-blue-500 hover:bg-blue-600 text-white';
     default:
@@ -37,7 +37,7 @@ const getLevelLabel = (level: string) => {
 const formatTimeAgo = (dateString: string) => {
   try {
     const date = new Date(dateString);
-    const now = new Date('2026-10-09T08:30:00Z');
+    const now = new Date();
     const diffInSeconds = Math.max(0, Math.floor((now.getTime() - date.getTime()) / 1000));
     
     if (diffInSeconds < 60) return 'เมื่อสักครู่';
@@ -46,7 +46,7 @@ const formatTimeAgo = (dateString: string) => {
     if (diffInMinutes < 60) return `${diffInMinutes} นาทีที่แล้ว`;
     
     const diffInHours = Math.floor(diffInMinutes / 60);
-    if (diffInHours < 24) return `${diffInHours} ชั่วโมงที่แล้ว`;
+    if (diffInHours < 24) return `${diffInHours} ชม. ที่แล้ว`;
     
     const diffInDays = Math.floor(diffInHours / 24);
     return `${diffInDays} วันที่แล้ว`;
@@ -61,31 +61,31 @@ export default function AlertList() {
 
   return (
     <Card className="w-full">
-      <CardHeader>
-        <CardTitle>⚠️ รายการแจ้งเตือนล่าสุดในพื้นที่ จ.กาฬสินธุ์</CardTitle>
+      <CardHeader className="p-3.5 sm:p-5">
+        <CardTitle className="text-base sm:text-lg">⚠️ รายการแจ้งเตือนล่าสุดในพื้นที่ จ.กาฬสินธุ์</CardTitle>
       </CardHeader>
-      <CardContent>
-        <div className="space-y-3.5">
+      <CardContent className="p-3.5 sm:p-5 pt-0 sm:pt-0">
+        <div className="space-y-3">
           {latestAlerts.map((alert) => (
             <div 
               key={alert.alert_id} 
-              className="flex items-start justify-between p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors cursor-pointer"
+              className="flex flex-col sm:flex-row sm:items-start justify-between gap-1.5 p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
             >
-              <div className="flex flex-col gap-1">
-                <div className="flex items-center gap-2">
-                  <Badge className={getLevelColor(alert.level)}>
+              <div className="flex flex-col gap-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <Badge className={`${getLevelColor(alert.level)} text-[10px] h-5`}>
                     {getLevelLabel(alert.level)}
                   </Badge>
-                  <span className="font-semibold text-sm">{alert.title}</span>
+                  <span className="font-semibold text-xs sm:text-sm text-slate-800">{alert.title}</span>
                 </div>
-                <p className="text-xs text-muted-foreground line-clamp-2 mt-1">
+                <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">
                   {alert.message}
                 </p>
-                <p className="text-xs text-muted-foreground mt-1">
+                <p className="text-[11px] text-slate-500 mt-0.5">
                   📍 {alert.location}
                 </p>
               </div>
-              <span className="text-xs text-muted-foreground whitespace-nowrap ml-4">
+              <span className="text-[10px] sm:text-xs text-muted-foreground shrink-0 self-start sm:self-auto sm:ml-4">
                 {formatTimeAgo(alert.created_at)}
               </span>
             </div>

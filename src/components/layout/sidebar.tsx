@@ -2,9 +2,9 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BarChart3, Users, Dog, Bell, Menu, X, ShieldCheck } from "lucide-react";
-import { useState } from "react";
+import { BarChart3, Users, Dog, Bell, X, ShieldCheck } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useData } from "@/context/data-context";
 
 const navItems = [
   { href: "/", label: "ภาพรวมสถานการณ์", icon: BarChart3 },
@@ -15,28 +15,22 @@ const navItems = [
 
 export function Sidebar() {
   const pathname = usePathname();
-  const [isOpen, setIsOpen] = useState(false);
+  const { isMobileSidebarOpen, setIsMobileSidebarOpen } = useData();
 
   return (
     <>
-      {/* Mobile toggle */}
-      <button 
-        className="md:hidden fixed top-4 left-4 z-50 p-2 bg-slate-900 text-white rounded-md shadow-md"
-        onClick={() => setIsOpen(!isOpen)}
-        aria-label="Toggle navigation menu"
+      {/* Sidebar Drawer */}
+      <aside 
+        aria-label="เมนูหลัก"
+        className={`
+          fixed inset-y-0 left-0 z-50 w-72 sm:w-64 bg-slate-900 text-slate-300 transition-transform duration-300 ease-in-out flex flex-col shadow-2xl md:shadow-none
+          md:static md:translate-x-0
+          ${isMobileSidebarOpen ? "translate-x-0" : "-translate-x-full"}
+        `}
       >
-        {isOpen ? <X size={20} /> : <Menu size={20} />}
-      </button>
-
-      {/* Sidebar */}
-      <aside className={`
-        fixed inset-y-0 left-0 z-40 w-64 bg-slate-900 text-slate-300 transition-transform duration-300 ease-in-out flex flex-col
-        md:static md:translate-x-0
-        ${isOpen ? "translate-x-0" : "-translate-x-full"}
-      `}>
         {/* Brand header */}
-        <div className="flex flex-col justify-center h-20 bg-slate-950 text-white border-b border-slate-800 px-5">
-          <div className="flex items-center gap-2">
+        <div className="flex items-center justify-between h-20 bg-slate-950 text-white border-b border-slate-800 px-5">
+          <div className="flex items-center gap-2.5">
             <span className="text-2xl">🐕</span>
             <div>
               <div className="font-bold text-base leading-tight text-white flex items-center gap-1.5">
@@ -45,6 +39,16 @@ export function Sidebar() {
               <div className="text-[11px] text-blue-400 font-medium">จ.กาฬสินธุ์ เมืองฟ้าแดดสงยาง</div>
             </div>
           </div>
+
+          {/* Close button for mobile drawer */}
+          <button
+            type="button"
+            onClick={() => setIsMobileSidebarOpen(false)}
+            className="md:hidden p-1.5 text-slate-400 hover:text-white rounded-md hover:bg-slate-800 transition-colors"
+            aria-label="ปิดเมนู"
+          >
+            <X size={20} />
+          </button>
         </div>
 
         {/* Navigation list */}
@@ -66,7 +70,7 @@ export function Sidebar() {
                         ? "bg-blue-600 text-white shadow-sm shadow-blue-500/20" 
                         : "hover:bg-slate-800/80 hover:text-white text-slate-300"}
                     `}
-                    onClick={() => setIsOpen(false)}
+                    onClick={() => setIsMobileSidebarOpen(false)}
                   >
                     <Icon size={18} className={isActive ? "text-white" : "text-slate-400"} />
                     <span>{item.label}</span>
@@ -77,9 +81,9 @@ export function Sidebar() {
           </ul>
 
           <div className="mt-8 px-4">
-            <div className="p-3 rounded-lg bg-slate-800/60 border border-slate-700/50">
+            <div className="p-3.5 rounded-lg bg-slate-800/60 border border-slate-700/50">
               <div className="flex items-center gap-2 text-xs font-semibold text-emerald-400 mb-1">
-                <ShieldCheck size={14} /> เขตพื้นที่เฝ้าระวัง
+                <ShieldCheck size={14} /> เขตพื้นที่เฝ้าระวัง One Health
               </div>
               <p className="text-[11px] text-slate-400 leading-relaxed">
                 ครอบคลุม 18 อำเภอ 135 ตำบล ในจังหวัดกาฬสินธุ์ เชื่อมโยง สสจ. และ ปศุสัตว์จังหวัด
@@ -103,11 +107,12 @@ export function Sidebar() {
         </div>
       </aside>
       
-      {/* Overlay */}
-      {isOpen && (
+      {/* Mobile Backdrop Overlay */}
+      {isMobileSidebarOpen && (
         <div 
-          className="fixed inset-0 bg-black/50 z-30 md:hidden"
-          onClick={() => setIsOpen(false)}
+          className="fixed inset-0 bg-black/60 backdrop-blur-xs z-40 md:hidden transition-opacity"
+          onClick={() => setIsMobileSidebarOpen(false)}
+          aria-hidden="true"
         />
       )}
     </>

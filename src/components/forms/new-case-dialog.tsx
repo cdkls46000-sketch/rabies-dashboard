@@ -156,27 +156,27 @@ export function NewCaseDialog() {
 
   return (
     <Dialog open={isNewCaseOpen} onOpenChange={setIsNewCaseOpen}>
-      <DialogContent className="max-w-3xl max-h-[92vh] overflow-y-auto">
+      <DialogContent className="w-[96vw] sm:max-w-3xl max-h-[90vh] overflow-y-auto p-3.5 sm:p-6">
         <DialogHeader>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div className="flex items-center gap-2 text-blue-600">
-              <PlusCircle className="w-5 h-5" />
-              <DialogTitle className="text-xl">บันทึกข้อมูลผู้สัมผัสโรครายใหม่ (จ.กาฬสินธุ์)</DialogTitle>
+              <PlusCircle className="w-5 h-5 shrink-0" />
+              <DialogTitle className="text-lg sm:text-xl">บันทึกข้อมูลผู้สัมผัสโรครายใหม่</DialogTitle>
             </div>
-            <div className="flex items-center gap-1.5 text-xs text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
+            <div className="flex items-center gap-1.5 text-xs text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200 self-start sm:self-auto">
               <ShieldCheck className="w-3.5 h-3.5" />
               <span className="font-semibold">PDPA Compliance</span>
             </div>
           </div>
-          <DialogDescription>
+          <DialogDescription className="text-xs">
             บันทึกประวัติการสัมผัสโรคละเอียดถึงระดับหมู่บ้าน พร้อมปักหมุดพิกัดและสร้างวงรัศมีเฝ้าระวัง 5 กิโลเมตร
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4 py-2">
           {/* ข้อมูลประจำปี พ.ศ. & ข้อมูลทั่วไป */}
-          <div className="bg-slate-50 p-3.5 rounded-lg border border-slate-200/80 space-y-3">
-            <div className="flex items-center justify-between">
+          <div className="bg-slate-50 p-3 sm:p-3.5 rounded-lg border border-slate-200/80 space-y-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
                 <span>👤</span> ข้อมูลทั่วไปของผู้สัมผัสโรค
               </h4>
@@ -534,18 +534,18 @@ export function NewCaseDialog() {
             </div>
           </div>
 
-          <DialogFooter className="gap-2 sm:gap-0 pt-2">
+          <DialogFooter className="flex flex-col-reverse sm:flex-row gap-2 pt-2">
             <Button 
               type="button" 
               variant="outline" 
               onClick={() => setIsNewCaseOpen(false)}
-              className="text-xs"
+              className="w-full sm:w-auto text-xs"
             >
               ยกเลิก
             </Button>
             <Button 
               type="submit" 
-              className="bg-blue-600 hover:bg-blue-700 text-white text-xs gap-1.5"
+              className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white text-xs gap-1.5"
             >
               <CheckCircle2 size={15} /> บันทึกข้อมูลและสร้างจุดพิกัดรัศมี 5 กม.
             </Button>

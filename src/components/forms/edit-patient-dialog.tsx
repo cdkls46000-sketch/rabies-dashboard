@@ -98,20 +98,20 @@ export function EditPatientDialog() {
 
   return (
     <Dialog open={!!editingPatient} onOpenChange={(open) => !open && setEditingPatient(null)}>
-      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+      <DialogContent className="w-[96vw] sm:max-w-lg max-h-[90vh] overflow-y-auto p-3.5 sm:p-6">
         <DialogHeader>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div className="flex items-center gap-2 text-blue-600">
-              <Edit3 className="w-5 h-5" />
-              <DialogTitle className="text-lg">แก้ไขข้อมูลผู้สัมผัสโรค (HN: {editingPatient.hn})</DialogTitle>
+              <Edit3 className="w-5 h-5 shrink-0" />
+              <DialogTitle className="text-base sm:text-lg">แก้ไขข้อมูลผู้สัมผัสโรค (HN: {editingPatient.hn})</DialogTitle>
             </div>
             {isPdpaActive && (
-              <Badge variant="outline" className="text-[10px] text-emerald-700 bg-emerald-50 border-emerald-300 flex items-center gap-1">
+              <Badge variant="outline" className="text-[10px] text-emerald-700 bg-emerald-50 border-emerald-300 flex items-center gap-1 self-start sm:self-auto">
                 <ShieldCheck size={12} /> PDPA Active
               </Badge>
             )}
           </div>
-          <DialogDescription>
+          <DialogDescription className="text-xs">
             อัปเดตข้อมูลระดับหมู่บ้าน ความคืบหน้าการฉีดวัคซีน และสถานะการติดตาม
           </DialogDescription>
         </DialogHeader>
@@ -286,7 +286,7 @@ export function EditPatientDialog() {
             </div>
           </div>
 
-          <div className="pt-2 flex items-center justify-between border-t border-slate-100">
+          <div className="pt-2 flex flex-col-reverse sm:flex-row sm:items-center justify-between gap-2 border-t border-slate-100">
             {confirmDelete ? (
               <div className="flex items-center gap-1.5">
                 <Button 
@@ -320,7 +320,7 @@ export function EditPatientDialog() {
               </Button>
             )}
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 w-full sm:w-auto">
               <Button 
                 type="button" 
                 variant="outline" 

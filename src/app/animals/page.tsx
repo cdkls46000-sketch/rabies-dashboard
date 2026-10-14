@@ -10,24 +10,24 @@ import { DistrictVaccinationTable } from '@/components/animals/district-vaccinat
 
 export default function AnimalsPage() {
   return (
-    <div className="space-y-6 p-2 md:p-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-gray-200">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-gray-900 flex items-center gap-2">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight text-gray-900 flex flex-wrap items-center gap-2">
             <span>การเฝ้าระวังโรคพิษสุนัขบ้าในสัตว์</span>
-            <span className="text-sm font-normal px-2.5 py-1 bg-blue-100 text-blue-800 rounded-full flex items-center gap-1">
-              <MapPin size={14} /> จ.กาฬสินธุ์
+            <span className="text-xs sm:text-sm font-normal px-2.5 py-0.5 sm:py-1 bg-blue-100 text-blue-800 rounded-full flex items-center gap-1 shrink-0">
+              <MapPin size={13} /> จ.กาฬสินธุ์
             </span>
           </h1>
-          <p className="text-sm text-muted-foreground mt-0.5">
+          <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
             ข้อมูลตรวจชันสูตรทางห้องปฏิบัติการ และความครอบคลุมการสร้างเสริมภูมิคุ้มกันโรคในสุนัข-แมว โดยปศุสัตว์จังหวัดกาฬสินธุ์
           </p>
         </div>
       </div>
       
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <KpiCard 
           title="สัตว์มีประวัติรายงานสงสัย" 
           value={`${animalSummary.totalReported.toLocaleString()} ตัว`} 
@@ -59,15 +59,15 @@ export default function AnimalsPage() {
       </div>
 
       {/* Lab Results and District Table */}
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-5 sm:gap-6">
         <Card className="xl:col-span-1">
-          <CardHeader>
-            <CardTitle>ผลตรวจทางห้องปฏิบัติการ (DFA/PCR)</CardTitle>
-            <CardDescription>
+          <CardHeader className="p-3.5 sm:p-5">
+            <CardTitle className="text-base sm:text-lg">ผลตรวจทางห้องปฏิบัติการ (DFA/PCR)</CardTitle>
+            <CardDescription className="text-xs">
               ตัวอย่างส่งตรวจ สถาบันสุขภาพสัตว์แห่งชาติ / ศูนย์วิจัยและพัฒนาการสัตวแพทย์
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-3.5 sm:p-5 pt-0 sm:pt-0">
             <LabResultsChart data={labSummary} />
             <div className="mt-4 p-3 bg-slate-50 rounded-lg text-xs text-slate-600 border border-slate-200">
               📌 ผลบวกทั้งหมดพบใน สุนัขจรจัด 15 ตัว, สุนัขมีเจ้าของ 2 ตัว และโค 1 ตัว
@@ -76,13 +76,13 @@ export default function AnimalsPage() {
         </Card>
         
         <Card className="xl:col-span-2">
-          <CardHeader>
-            <CardTitle>สถิติการฉีดวัคซีนสัตว์ รายอำเภอ (จ.กาฬสินธุ์)</CardTitle>
-            <CardDescription>
+          <CardHeader className="p-3.5 sm:p-5">
+            <CardTitle className="text-base sm:text-lg">สถิติการฉีดวัคซีนสัตว์ รายอำเภอ (จ.กาฬสินธุ์)</CardTitle>
+            <CardDescription className="text-xs">
               เป้าหมายและผลการดำเนินงาน อปท. ร่วมกับปศุสัตว์อำเภอ (เกณฑ์ความปลอดภัย ≥ 80%)
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-3.5 sm:p-5 pt-0 sm:pt-0">
             <DistrictVaccinationTable data={districtVaccinationData} />
           </CardContent>
         </Card>

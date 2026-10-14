@@ -1,0 +1,16 @@
+{
+  "name": "ระบบเฝ้าระวังโรคพิษสุนัขบ้า จังหวัดกาฬสินธุ์",
+  "short_name": "Rabies Kalasin",
+  "description": "ระบบฐานข้อมูลและรายงานสถานการณ์โรคพิษสุนัขบ้า จังหวัดกาฬสินธุ์",
+  "start_url": "/rabies-dashboard/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0f172a",
+  "icons": [
+    {
+      "src": "/rabies-dashboard/globe.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml"
+    }
+  ]
+}
