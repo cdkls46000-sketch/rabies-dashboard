@@ -27,7 +27,7 @@ export default function TrendChart() {
           </Badge>
         </div>
         <p className="text-[11px] text-muted-foreground mt-0.5">
-          เปรียบเทียบจำนวนเคสรายงาน ผู้สัมผัสโรค และสัตว์ที่ตรวจพบเชื้อผลบวก (12 เดือน)
+          เปรียบเทียบรายงานเหตุการณ์รวม ผู้สัมผัสโรค และสัตว์ที่ตรวจพบเชื้อผลบวก (12 เดือน)
         </p>
       </CardHeader>
       <CardContent>
@@ -58,7 +58,7 @@ export default function TrendChart() {
               <Line 
                 type="monotone" 
                 dataKey="cases" 
-                name="จำนวนเคสทั้งหมด" 
+                name="รายงานเหตุการณ์รวม (สัตว์+คนสัมผัส)" 
                 stroke="#3b82f6" 
                 strokeWidth={2}
                 activeDot={{ r: 6 }} 

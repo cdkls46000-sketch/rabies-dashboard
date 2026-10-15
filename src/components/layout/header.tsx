@@ -92,7 +92,7 @@ export function Header() {
               ? 'bg-emerald-50 text-emerald-800 border-emerald-300 hover:bg-emerald-100' 
               : 'bg-amber-50 text-amber-800 border-amber-300 hover:bg-amber-100'
           }`}
-          title={isPdpaActive ? "PDPA เปิดอยู่: ชื่อผู้ป่วยจะถูก Mask เป็น ส*** ภ*** เพื่อความปลอดภัยตามกฎหมาย" : "โหมดเจ้าหน้าที่: แสดงชื่อผู้ป่วยเต็ม"}
+          title={isPdpaActive ? "PDPA เปิดอยู่: ชื่อผู้สัมผัสโรคจะถูก Mask เป็น ส*** ภ*** เพื่อความปลอดภัยตามกฎหมาย" : "โหมดเจ้าหน้าที่: แสดงชื่อผู้สัมผัสโรคเต็ม"}
         >
           {isPdpaActive ? (
             <>

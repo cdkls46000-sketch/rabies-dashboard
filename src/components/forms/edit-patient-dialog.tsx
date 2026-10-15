@@ -280,7 +280,7 @@ export function EditPatientDialog() {
               <Input 
                 value={notes} 
                 onChange={(e) => setNotes(e.target.value)} 
-                placeholder="เช่น ผู้ป่วยรับวัคซีนเข็ม 2 ปกติ นัดเข็ม 3 วันที่ 12 ต.ค." 
+                placeholder="เช่น ผู้สัมผัสรับวัคซีนเข็ม 2 ปกติ นัดเข็ม 3 วันที่ 12 ต.ค." 
                 className="h-8 text-xs" 
               />
             </div>

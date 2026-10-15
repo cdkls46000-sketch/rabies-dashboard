@@ -77,7 +77,7 @@ export default function PatientsPage() {
         <div>
           <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
             <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight text-gray-900">
-              รายงานผู้สัมผัสโรคพิษสุนัขบ้า (คน)
+              ทะเบียนผู้สัมผัสโรคพิษสุนัขบ้า (Exposures)
             </h1>
             <span className="text-xs sm:text-sm font-normal px-2.5 py-0.5 sm:py-1 bg-blue-100 text-blue-800 rounded-full flex items-center gap-1 shrink-0">
               <MapPin size={13} /> จ.กาฬสินธุ์
@@ -87,7 +87,7 @@ export default function PatientsPage() {
             </Badge>
           </div>
           <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
-            ข้อมูลการประเมินบาดแผล WHO Category I-III บันทึกระดับหมู่บ้าน และติดตามวัคซีน PEP ปี พ.ศ. 2568 - 2571
+            ข้อมูลผู้สัมผัสสัตว์สงสัย/ติดเชื้อที่ได้รับวัคซีน PEP (จังหวัดกาฬสินธุ์ ไม่พบผู้ป่วยโรคพิษสุนัขบ้าในคน ผู้ป่วย = 0 ราย)
           </p>
         </div>
 
@@ -98,8 +98,18 @@ export default function PatientsPage() {
           <PlusCircle size={15} /> บันทึกผู้สัมผัสโรครายใหม่
         </Button>
       </div>
+
+      {/* แถบชี้แจงระบาดวิทยา: ไม่มีผู้ป่วย มีเฉพาะผู้สัมผัสโรค */}
+      <div className="p-3 bg-emerald-50/90 border border-emerald-200 rounded-xl flex items-center justify-between gap-2.5 text-xs shadow-xs">
+        <div className="flex items-center gap-2">
+          <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
+          <span className="text-emerald-900 text-[11px] sm:text-xs">
+            🟢 <strong>ข้อเท็จจริงทางระบาดวิทยา:</strong> ในระบบนี้คือ <strong>&quot;ผู้สัมผัสโรค&quot; (Exposures)</strong> ที่ถูกสัตว์กัด/ข่วน และเข้ารับวัคซีน PEP เพื่อป้องกันโรค โดยในจังหวัดกาฬสินธุ์ <strong>ไม่พบผู้ป่วยโรคพิษสุนัขบ้าในคน (ผู้ป่วย = 0 ราย, เสียชีวิต = 0 ราย)</strong>
+          </span>
+        </div>
+      </div>
       
-      {/* KPI Cards */}
+      {/* KPI Cards: Cat I, Cat II, Cat III, ผู้ป่วย/เสียชีวิต = 0 */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <KpiCard 
           title="Category I (สัมผัส/เลียผิวปกติ)" 
@@ -123,11 +133,11 @@ export default function PatientsPage() {
           colorClass="text-red-500" 
         />
         <KpiCard 
-          title="ผู้เสียชีวิตจากโรค (Deaths)" 
-          value={`${categoryCount.deaths} ราย`} 
+          title="ผู้ป่วย / เสียชีวิตจากโรค" 
+          value="0 ราย" 
           change={0} 
-          icon={Skull} 
-          colorClass="text-emerald-500" 
+          icon={ShieldCheck} 
+          colorClass="text-emerald-600" 
         />
       </div>
 
@@ -141,7 +151,7 @@ export default function PatientsPage() {
           )}
           <span className="text-slate-700 text-[11px] sm:text-xs">
             {isPdpaActive 
-              ? '🔒 ข้อมูลชื่อ-สกุลถูกปกปิดตาม พ.ร.บ. คุ้มครองข้อมูลส่วนบุคคล พ.ศ. 2562 (PDPA) เพื่อรักษาความลับของผู้ป่วย'
+              ? '🔒 ข้อมูลชื่อ-สกุลถูกปกปิดตาม พ.ร.บ. คุ้มครองข้อมูลส่วนบุคคล พ.ศ. 2562 (PDPA) เพื่อรักษาความลับของผู้สัมผัสโรค'
               : '🔓 กำลังแสดงชื่อเต็มสำหรับเจ้าหน้าที่ผู้มีสิทธิเข้าถึงข้อมูล (ระมัดระวังการเปิดเผยในที่สาธารณะ)'}
           </span>
         </div>
@@ -297,7 +307,7 @@ export default function PatientsPage() {
                         variant="ghost"
                         size="sm"
                         onClick={() => {
-                          if (confirm(`ต้องการลบข้อมูลผู้ป่วย HN: ${p.hn} ใช่หรือไม่?`)) {
+                          if (confirm(`ต้องการลบข้อมูลผู้สัมผัสโรค HN: ${p.hn} ใช่หรือไม่?`)) {
                             deletePatient(p.hn);
                           }
                         }}
@@ -408,7 +418,7 @@ export default function PatientsPage() {
                               variant="ghost"
                               size="sm"
                               onClick={() => {
-                                if (confirm(`คุณต้องการลบข้อมูลผู้ป่วย HN: ${p.hn} (${getDisplayName(p.name)}) ใช่หรือไม่?`)) {
+                                if (confirm(`คุณต้องการลบข้อมูลผู้สัมผัสโรค HN: ${p.hn} (${getDisplayName(p.name)}) ใช่หรือไม่?`)) {
                                   deletePatient(p.hn);
                                 }
                               }}
@@ -443,7 +453,7 @@ export default function PatientsPage() {
                 💡 ระบบติดตามอัตโนมัติ (Active Surveillance)
               </div>
               <p className="text-[11px] leading-relaxed text-blue-700">
-                เมื่อผู้ป่วยได้รับวัคซีนแต่ละเข็ม เจ้าหน้าที่สามารถกด <strong>&apos;แก้ไข&apos;</strong> เพื่ออัปเดตเป็นเข็มถัดไป (เช่น 2/5, 3/5) หากเกินกำหนดนัด ระบบจะขึ้นเตือนเป็นสถานะ <strong>ขาดนัด</strong> อัตโนมัติ พร้อมส่งสัญญาณเตือนภัย
+                เมื่อผู้สัมผัสโรคได้รับวัคซีนแต่ละเข็ม เจ้าหน้าที่สามารถกด <strong>&apos;แก้ไข&apos;</strong> เพื่ออัปเดตเป็นเข็มถัดไป (เช่น 2/5, 3/5) หากเกินกำหนดนัด ระบบจะขึ้นเตือนเป็นสถานะ <strong>ขาดนัด</strong> อัตโนมัติ พร้อมส่งสัญญาณเตือนภัย
               </p>
             </div>
           </CardContent>

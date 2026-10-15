@@ -16,7 +16,7 @@ export default function ProvinceRankChart() {
   return (
     <Card className="w-full h-full">
       <CardHeader>
-        <CardTitle>📊 10 อันดับอำเภอพบเคสสูงสุด (จ.กาฬสินธุ์)</CardTitle>
+        <CardTitle>📊 10 อันดับอำเภอพบเหตุการณ์สูงสุด (จ.กาฬสินธุ์)</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="h-[300px] w-full">
@@ -41,7 +41,7 @@ export default function ProvinceRankChart() {
               <XAxis type="number" />
               <YAxis dataKey="province" type="category" tick={{ fontSize: 12 }} />
               <Tooltip />
-              <Bar dataKey="cases" name="จำนวนเคส" fill="url(#colorCases)" radius={[0, 4, 4, 0]} barSize={20} />
+              <Bar dataKey="cases" name="จำนวนเหตุการณ์ (สัมผัส+สัตว์)" fill="url(#colorCases)" radius={[0, 4, 4, 0]} barSize={20} />
             </BarChart>
           </ResponsiveContainer>
         </div>

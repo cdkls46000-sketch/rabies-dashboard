@@ -128,7 +128,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       try {
         localStorage.setItem('rabies_kalasin_pdpa', String(next));
       } catch {}
-      showToast(next ? '🛡️ เปิดโหมด PDPA: ซ่อนชื่อ-สกุลเรียบร้อยแล้ว' : '🔓 โหมดเจ้าหน้าที่: แสดงชื่อผู้ป่วยเต็ม');
+      showToast(next ? '🛡️ เปิดโหมด PDPA: ซ่อนชื่อ-สกุลเรียบร้อยแล้ว' : '🔓 โหมดเจ้าหน้าที่: แสดงชื่อผู้สัมผัสโรคเต็ม');
       return next;
     });
   };
@@ -200,7 +200,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       addAlert({
         level: 'critical',
         title: `พบผู้สัมผัสโรคบาดแผลระดับ 3 (Cat III) — HN: ${patientWithYear.hn}`,
-        message: `ผู้ป่วย HN: ${patientWithYear.hn} บาดแผล ${patientWithYear.wound_site || 'รุนแรง'} เข้ารับการรักษาที่ ${patientWithYear.hospital || 'รพ.ในพื้นที่'} ต้องได้รับ RIG และวัคซีนทันที พร้อมประกาศเฝ้าระวังพื้นที่หมู่บ้าน รัศมี 5 กม.`,
+        message: `ผู้สัมผัสโรค HN: ${patientWithYear.hn} บาดแผล ${patientWithYear.wound_site || 'รุนแรง'} เข้ารับการรักษาที่ ${patientWithYear.hospital || 'รพ.ในพื้นที่'} ต้องได้รับ RIG และวัคซีนทันที พร้อมประกาศเฝ้าระวังพื้นที่หมู่บ้าน รัศมี 5 กม.`,
         location: locationText || `${patientWithYear.district || 'จ.กาฬสินธุ์'}`,
       });
     }
@@ -249,7 +249,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         title: `${patientWithYear.district || 'จ.กาฬสินธุ์'} - ผู้สัมผัสโรค (แผล Cat ${patientWithYear.wound_category})`,
         type: 'exposure',
         date: patientWithYear.exposure_date,
-        details: `ผู้ป่วย (HN: ${patientWithYear.hn}) พื้นที่: ${locationDetails || 'จ.กาฬสินธุ์'} | สถานะวัคซีน: ${patientWithYear.vaccine_status} | วงรัศมีเฝ้าระวัง 5 กม.`,
+        details: `ผู้สัมผัสโรค (HN: ${patientWithYear.hn}) พื้นที่: ${locationDetails || 'จ.กาฬสินธุ์'} | สถานะวัคซีน: ${patientWithYear.vaccine_status} | วงรัศมีเฝ้าระวัง 5 กม.`,
         district: patientWithYear.district,
         subdistrict: patientWithYear.subdistrict,
         village_no: patientWithYear.village_no,
@@ -271,12 +271,12 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       }
       return p;
     }));
-    showToast(`✏️ อัปเดตข้อมูลผู้ป่วย HN: ${hn} เรียบร้อยแล้ว`);
+    showToast(`✏️ อัปเดตข้อมูลผู้สัมผัสโรค HN: ${hn} เรียบร้อยแล้ว`);
   };
 
   const deletePatient = (hn: string) => {
     setPatients(prev => prev.filter(p => p.hn !== hn));
-    showToast(`🗑️ ลบข้อมูลผู้ป่วย HN: ${hn} เรียบร้อยแล้ว`);
+    showToast(`🗑️ ลบข้อมูลผู้สัมผัสโรค HN: ${hn} เรียบร้อยแล้ว`);
   };
 
   const addMapPoint = (point: Omit<MapPoint, 'id'>) => {
