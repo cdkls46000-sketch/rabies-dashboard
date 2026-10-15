@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BarChart3, Users, Dog, Bell, X, ShieldCheck } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { BarChart3, Users, Dog, Bell, X, ShieldCheck, LogIn, LogOut } from "lucide-react";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useData } from "@/context/data-context";
 
 const navItems = [
@@ -15,7 +15,15 @@ const navItems = [
 
 export function Sidebar() {
   const pathname = usePathname();
-  const { isMobileSidebarOpen, setIsMobileSidebarOpen } = useData();
+  const { 
+    isMobileSidebarOpen, 
+    setIsMobileSidebarOpen,
+    currentUser,
+    isLoggedIn,
+    logout,
+    setIsLoginOpen,
+    setLoginReason
+  } = useData();
 
   return (
     <>
@@ -93,17 +101,42 @@ export function Sidebar() {
         </nav>
 
         {/* User profile footer */}
-        <div className="p-4 border-t border-slate-800/80 bg-slate-950/60">
-          <div className="flex items-center gap-3">
-            <Avatar className="h-9 w-9 ring-1 ring-slate-700">
-              <AvatarImage src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80" />
-              <AvatarFallback className="bg-slate-800 text-white text-xs">สสจ</AvatarFallback>
-            </Avatar>
-            <div className="truncate">
-              <p className="text-xs font-semibold text-white truncate">สสจ.กาฬสินธุ์</p>
-              <p className="text-[11px] text-slate-400 truncate">กลุ่มงานควบคุมโรคติดต่อ</p>
+        <div className="p-3.5 border-t border-slate-800/80 bg-slate-950/80">
+          {isLoggedIn && currentUser ? (
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <Avatar className="h-8 w-8 ring-1 ring-emerald-500 shrink-0">
+                  <AvatarFallback className="bg-emerald-600 text-white font-bold text-xs">
+                    {currentUser.role === 'admin' ? 'นพ' : 'พว'}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="truncate min-w-0">
+                  <p className="text-xs font-semibold text-white truncate">{currentUser.name}</p>
+                  <p className="text-[10px] text-emerald-400 truncate">{currentUser.position}</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={logout}
+                className="p-1.5 text-slate-400 hover:text-red-400 hover:bg-slate-800 rounded-md transition-colors shrink-0"
+                title="ออกจากระบบ (Logout)"
+              >
+                <LogOut size={15} />
+              </button>
             </div>
-          </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => {
+                setLoginReason('เข้าสู่ระบบสำหรับเจ้าหน้าที่สาธารณสุขเพื่อดูชื่อเต็มและบันทึกเคสใหม่');
+                setIsLoginOpen(true);
+              }}
+              className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold transition-all shadow-sm active:scale-98 cursor-pointer"
+            >
+              <LogIn size={14} />
+              <span>เข้าสู่ระบบเจ้าหน้าที่</span>
+            </button>
+          )}
         </div>
       </aside>
       

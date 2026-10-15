@@ -15,7 +15,9 @@ import {
   ShieldCheck,
   ShieldAlert,
   Syringe,
-  Home
+  Home,
+  Lock,
+  LogIn
 } from 'lucide-react';
 import { vaccineCoverageData, kalasinDistricts } from '@/lib/mock-data';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -41,8 +43,13 @@ export default function PatientsPage() {
     setIsNewCaseOpen, 
     deletePatient,
     isPdpaActive,
+    togglePdpa,
     getDisplayName,
     selectedYear,
+    currentUser,
+    isLoggedIn,
+    setIsLoginOpen,
+    setLoginReason
   } = useData();
 
   const [search, setSearch] = useState('');
@@ -141,24 +148,75 @@ export default function PatientsPage() {
         />
       </div>
 
-      {/* PDPA Privacy Protection Notice Banner */}
-      <div className="p-3 bg-slate-100/90 border border-slate-200 rounded-lg flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
-        <div className="flex items-center gap-2">
-          {isPdpaActive ? (
-            <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
-          ) : (
-            <ShieldAlert className="w-4 h-4 text-amber-600 shrink-0" />
-          )}
-          <span className="text-slate-700 text-[11px] sm:text-xs">
-            {isPdpaActive 
-              ? '🔒 ข้อมูลชื่อ-สกุลถูกปกปิดตาม พ.ร.บ. คุ้มครองข้อมูลส่วนบุคคล พ.ศ. 2562 (PDPA) เพื่อรักษาความลับของผู้สัมผัสโรค'
-              : '🔓 กำลังแสดงชื่อเต็มสำหรับเจ้าหน้าที่ผู้มีสิทธิเข้าถึงข้อมูล (ระมัดระวังการเปิดเผยในที่สาธารณะ)'}
-          </span>
+      {/* PDPA Privacy Protection Notice & Auth Controls Banner */}
+      {isLoggedIn && currentUser ? (
+        <div className="p-3 sm:p-4 bg-emerald-50/90 border border-emerald-200/90 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs shadow-2xs">
+          <div className="flex items-start gap-2.5">
+            <div className="p-1.5 bg-emerald-100 rounded-lg text-emerald-700 shrink-0 mt-0.5">
+              <ShieldCheck className="w-4 h-4" />
+            </div>
+            <div>
+              <div className="font-bold text-emerald-950 flex flex-wrap items-center gap-1.5 sm:gap-2">
+                <span>เข้าสู่ระบบแล้ว: {currentUser.name}</span>
+                <Badge variant="outline" className="text-[10px] bg-emerald-100 text-emerald-800 border-emerald-300">
+                  {currentUser.organization}
+                </Badge>
+              </div>
+              <p className="text-[11px] text-emerald-800 mt-0.5 leading-relaxed">
+                ท่านได้รับสิทธิ์เข้าถึงข้อมูลส่วนบุคคลตาม พ.ร.บ. PDPA เพื่อการวินิจฉัยและติดตามวัคซีน | สถานะปัจจุบัน: <strong>{isPdpaActive ? '🛡️ ซ่อนชื่อตาม PDPA' : '🔓 กำลังแสดงชื่อเต็มสำหรับเจ้าหน้าที่'}</strong>
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 shrink-0 self-start sm:self-center">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={togglePdpa}
+              className="h-8 text-xs font-semibold border-emerald-300 text-emerald-800 hover:bg-emerald-100/70"
+            >
+              {isPdpaActive ? '🔓 ปลดล็อคแสดงชื่อเต็ม' : '🛡️ สลับเป็นซ่อนชื่อ (PDPA)'}
+            </Button>
+            <Button
+              size="sm"
+              onClick={() => setIsNewCaseOpen(true)}
+              className="bg-blue-600 hover:bg-blue-700 text-white text-xs h-8 px-3 font-semibold gap-1.5 shadow-xs cursor-pointer active:scale-95"
+            >
+              <PlusCircle size={14} />
+              <span>บันทึกเคสใหม่</span>
+            </Button>
+          </div>
         </div>
-        <span className="text-[10px] sm:text-[11px] text-slate-500 shrink-0">
-          แสดงข้อมูลละเอียดระดับหมู่บ้าน พร้อมพิกัดรัศมี 5 กม.
-        </span>
-      </div>
+      ) : (
+        <div className="p-3 sm:p-4 bg-amber-50/90 border border-amber-200/90 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs shadow-2xs">
+          <div className="flex items-start gap-2.5">
+            <div className="p-1.5 bg-amber-100 rounded-lg text-amber-700 shrink-0 mt-0.5">
+              <Lock className="w-4 h-4" />
+            </div>
+            <div>
+              <div className="font-bold text-amber-950 flex flex-wrap items-center gap-1.5 sm:gap-2">
+                <span>โหมดบุคคลทั่วไป (PDPA Masked)</span>
+                <Badge variant="outline" className="text-[10px] bg-amber-100/80 text-amber-800 border-amber-300">
+                  คุ้มครองข้อมูลส่วนบุคคล 100%
+                </Badge>
+              </div>
+              <p className="text-[11px] text-amber-800 mt-0.5 leading-relaxed">
+                รายชื่อ-สกุลถูกเข้ารหัสปกปิดตาม พ.ร.บ. คุ้มครองข้อมูลส่วนบุคคล พ.ศ. 2562 (เช่น ส*** ภ***) — เจ้าหน้าที่สาธารณสุขกรุณาเข้าสู่ระบบเพื่อดูชื่อเต็มและบันทึกติดตามการฉีดวัคซีน
+              </p>
+            </div>
+          </div>
+          <Button
+            size="sm"
+            onClick={() => {
+              setLoginReason('เข้าสู่ระบบสำหรับเจ้าหน้าที่สาธารณสุขเพื่อดูชื่อ-สกุลจริงของผู้สัมผัสโรคตาม PDPA และบันทึกติดตามวัคซีน');
+              setIsLoginOpen(true);
+            }}
+            className="bg-amber-600 hover:bg-amber-700 text-white text-xs h-8 px-3.5 font-semibold shrink-0 gap-1.5 shadow-xs cursor-pointer active:scale-95 self-start sm:self-center"
+          >
+            <LogIn size={13} />
+            <span>เข้าสู่ระบบเพื่อดูชื่อเต็ม</span>
+          </Button>
+        </div>
+      )}
 
       {/* Main Table and Chart */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-5 sm:gap-6">

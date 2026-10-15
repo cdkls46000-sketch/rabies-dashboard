@@ -253,3 +253,11 @@ export interface AlertSummary {
   warning: number;
   info: number;
 }
+
+export interface AuthUser {
+  username: string;
+  name: string;
+  role: 'officer' | 'admin';
+  position: string;
+  organization: string;
+}

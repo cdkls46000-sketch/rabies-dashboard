@@ -4,6 +4,7 @@ import React from 'react';
 import { DataProvider, useData } from '@/context/data-context';
 import { NewCaseDialog } from '@/components/forms/new-case-dialog';
 import { EditPatientDialog } from '@/components/forms/edit-patient-dialog';
+import { LoginDialog } from '@/components/auth/login-dialog';
 
 function ToastNotifier() {
   const { toastMessage } = useData();
@@ -21,6 +22,7 @@ export function AppProviders({ children }: { children: React.ReactNode }) {
       {children}
       <NewCaseDialog />
       <EditPatientDialog />
+      <LoginDialog />
       <ToastNotifier />
     </DataProvider>
   );
