@@ -24,7 +24,8 @@ import {
   Building2,
   CheckCircle2,
   Share2,
-  FileText
+  FileText,
+  Users
 } from 'lucide-react';
 import { yearlyVaccineCoverageData, kalasinDistricts } from '@/lib/mock-data';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -187,8 +188,15 @@ export default function PatientsPage() {
         </div>
       </div>
       
-      {/* KPI Cards: Cat I, Cat II, Cat III, RIG Coverage in Cat III, ผู้ป่วย/เสียชีวิต = 0 */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
+      {/* KPI Cards: ผู้สัมผัสทั้งหมด, Cat I, Cat II, Cat III, RIG Coverage in Cat III, ผู้ป่วย/เสียชีวิต = 0 */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 sm:gap-3.5">
+        <KpiCard 
+          title="ผู้สัมผัสทั้งหมด" 
+          value={`${categoryCount.catI + categoryCount.catII + categoryCount.catIII} ราย`} 
+          change={0} 
+          icon={Users} 
+          colorClass="text-blue-600" 
+        />
         <KpiCard 
           title="Category I (สัมผัส/เลียผิวปกติ)" 
           value={`${categoryCount.catI} ราย`} 
