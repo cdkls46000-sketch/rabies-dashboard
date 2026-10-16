@@ -1,5 +1,6 @@
 "use client";
 
+import * as React from "react";
 import { usePathname } from "next/navigation";
 import { 
   Bell, 
@@ -54,6 +55,14 @@ export function Header() {
   
   const unreadAlertsCount = alerts.filter(a => !a.is_read).length;
 
+  const kalasinDistrictMap = React.useMemo(() => {
+    const map: Record<string, string> = {};
+    kalasinDistricts.forEach((d) => {
+      map[d.id] = d.name;
+    });
+    return map;
+  }, []);
+
   const titles: Record<string, string> = {
     "/": "ภาพรวมสถานการณ์",
     "/patients": "ผู้สัมผัสโรค",
@@ -95,8 +104,14 @@ export function Header() {
           <Select 
             value={selectedYear} 
             onValueChange={(val) => { if (val) setSelectedYear(val as FiscalYear); }}
+            items={{
+              '2568': 'พ.ศ. 2568',
+              '2569': 'พ.ศ. 2569',
+              '2570': 'พ.ศ. 2570',
+              '2571': 'พ.ศ. 2571',
+            }}
           >
-            <SelectTrigger className="h-6 sm:h-7 w-[68px] sm:w-[105px] text-[11px] sm:text-xs font-bold bg-white text-blue-700 border-slate-200 shadow-none px-1 sm:px-1.5">
+            <SelectTrigger className="h-6 sm:h-7 w-[78px] sm:w-[105px] text-[11px] sm:text-xs font-bold bg-white text-blue-700 border-slate-200 shadow-none px-1 sm:px-1.5">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -157,8 +172,11 @@ export function Header() {
 
         {/* District selector for Kalasin (Desktop only) */}
         <div className="hidden lg:flex items-center gap-2">
-          <Select defaultValue="all">
-            <SelectTrigger className="w-[125px] h-8 text-xs">
+          <Select 
+            defaultValue="all"
+            items={kalasinDistrictMap}
+          >
+            <SelectTrigger className="w-[150px] h-8 text-xs">
               <SelectValue placeholder="อำเภอ" />
             </SelectTrigger>
             <SelectContent className="max-h-60">

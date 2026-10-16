@@ -156,7 +156,15 @@ export function PositiveAnimalTable({ alerts, onOpenPdf, onShareLine }: Positive
           </div>
 
           {/* Species Filter */}
-          <Select value={speciesFilter} onValueChange={(val) => setSpeciesFilter(val || 'all')}>
+          <Select 
+            value={speciesFilter} 
+            onValueChange={(val) => setSpeciesFilter(val || 'all')}
+            items={{
+              all: 'ชนิดสัตว์: ทั้งหมด (32)',
+              dog: 'สุนัข (31)',
+              cow: '🐄 โค/วัว (1)',
+            }}
+          >
             <SelectTrigger className="h-8 text-xs w-full">
               <SelectValue placeholder="ชนิดสัตว์" />
             </SelectTrigger>
@@ -168,7 +176,19 @@ export function PositiveAnimalTable({ alerts, onOpenPdf, onShareLine }: Positive
           </Select>
 
           {/* District Filter */}
-          <Select value={districtFilter} onValueChange={(val) => setDistrictFilter(val || 'all')}>
+          <Select 
+            value={districtFilter} 
+            onValueChange={(val) => setDistrictFilter(val || 'all')}
+            items={{
+              all: 'อำเภอ: ทุกอำเภอที่พบเชื้อ',
+              'ยางตลาด': 'อ.ยางตลาด (13 หัว)',
+              'เมือง': 'อ.เมืองกาฬสินธุ์ (8 หัว)',
+              'หนองกุงศรี': 'อ.หนองกุงศรี (7 หัว)',
+              'กมลาไสย': 'อ.กมลาไสย (1 หัว - สีแดง)',
+              'ห้วยเม็ก': 'อ.ห้วยเม็ก (2 หัว)',
+              'กุฉินารายณ์': 'อ.กุฉินารายณ์ (1 หัว)',
+            }}
+          >
             <SelectTrigger className="h-8 text-xs w-full">
               <SelectValue placeholder="อำเภอ" />
             </SelectTrigger>

@@ -387,7 +387,16 @@ export function NewCaseDialog() {
               </div>
               <div>
                 <Label className="text-xs">ลักษณะการสัมผัส</Label>
-                <Select value={exposureType} onValueChange={(val) => { if (val) setExposureType(val); }}>
+                <Select 
+                  value={exposureType} 
+                  onValueChange={(val) => { if (val) setExposureType(val); }}
+                  items={{
+                    bite: 'ถูกกัด (Bite)',
+                    scratch: 'ถูกข่วน (Scratch)',
+                    lick: 'เลียแผล/เยื่อบุ (Lick on broken skin)',
+                    contact: 'สัมผัสซากสัตว์/น้ำลาย',
+                  }}
+                >
                   <SelectTrigger className="h-8 text-xs bg-white">
                     <SelectValue />
                   </SelectTrigger>
@@ -401,7 +410,17 @@ export function NewCaseDialog() {
               </div>
               <div>
                 <Label className="text-xs">ตำแหน่งบาดแผล</Label>
-                <Select value={woundSite} onValueChange={(val) => { if (val) setWoundSite(val); }}>
+                <Select 
+                  value={woundSite} 
+                  onValueChange={(val) => { if (val) setWoundSite(val); }}
+                  items={{
+                    'มือ/แขน': 'มือ / แขน',
+                    'ขา/เท้า': 'ขา / เท้า',
+                    'ใบหน้า/ศีรษะ': 'ใบหน้า / ศีรษะ (เสี่ยงสูงมาก)',
+                    'ลำตัว': 'ลำตัว',
+                    'หลายตำแหน่ง': 'หลายตำแหน่ง',
+                  }}
+                >
                   <SelectTrigger className="h-8 text-xs bg-white">
                     <SelectValue />
                   </SelectTrigger>
@@ -480,7 +499,17 @@ export function NewCaseDialog() {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
                 <Label className="text-xs">ชนิดสัตว์</Label>
-                <Select value={animalSpecies} onValueChange={(val) => { if (val) setAnimalSpecies(val); }}>
+                <Select 
+                  value={animalSpecies} 
+                  onValueChange={(val) => { if (val) setAnimalSpecies(val); }}
+                  items={{
+                    dog: 'สุนัข (Dog)',
+                    cat: 'แมว (Cat)',
+                    cattle: 'โค - กระบือ (Cattle)',
+                    bat: 'ค้างคาว (Bat)',
+                    other: 'สัตว์เลี้ยงลูกด้วยนมอื่นๆ',
+                  }}
+                >
                   <SelectTrigger className="h-8 text-xs bg-white">
                     <SelectValue />
                   </SelectTrigger>
@@ -495,7 +524,15 @@ export function NewCaseDialog() {
               </div>
               <div>
                 <Label className="text-xs">สถานะสัตว์</Label>
-                <Select value={animalOwnership} onValueChange={(val) => { if (val) setAnimalOwnership(val); }}>
+                <Select 
+                  value={animalOwnership} 
+                  onValueChange={(val) => { if (val) setAnimalOwnership(val); }}
+                  items={{
+                    owned: 'มีเจ้าของ (กักสังเกต 10 วัน)',
+                    stray: 'สัตว์จรจัด / ไม่ทราบประวัติ',
+                    dead: 'สัตว์ตาย (ส่งตัดหัวตรวจ Lab)',
+                  }}
+                >
                   <SelectTrigger className="h-8 text-xs bg-white">
                     <SelectValue />
                   </SelectTrigger>
@@ -508,7 +545,14 @@ export function NewCaseDialog() {
               </div>
               <div>
                 <Label className="text-xs">สูตรการฉีดวัคซีน (Regimen)</Label>
-                <Select value={regimen} onValueChange={(val) => { if (val) setRegimen(val); }}>
+                <Select 
+                  value={regimen} 
+                  onValueChange={(val) => { if (val) setRegimen(val); }}
+                  items={{
+                    'Essen (5 เข็ม)': 'Essen IM (Day 0, 3, 7, 14, 28)',
+                    'TRC (2-2-2-0-2)': 'Thai Red Cross ID (4 ครั้ง)',
+                  }}
+                >
                   <SelectTrigger className="h-8 text-xs bg-white">
                     <SelectValue />
                   </SelectTrigger>

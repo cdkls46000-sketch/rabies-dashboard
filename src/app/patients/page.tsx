@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import KpiCard from '@/components/dashboard/kpi-card';
 import { 
   Activity, 
@@ -55,6 +55,24 @@ export default function PatientsPage() {
   const [search, setSearch] = useState('');
   const [districtFilter, setDistrictFilter] = useState('all');
   const [yearFilter, setYearFilter] = useState<string>(selectedYear);
+
+  const districtFilterItems = useMemo(() => {
+    const map: Record<string, string> = {
+      all: 'อำเภอ: ทุกอำเภอ (จ.กาฬสินธุ์)',
+    };
+    kalasinDistricts.filter(d => d.id !== 'all').forEach(d => {
+      map[d.name.replace('อ.', '')] = d.name;
+    });
+    return map;
+  }, []);
+
+  const yearFilterItems: Record<string, string> = {
+    all: 'ปีงบประมาณ: ทุกปี',
+    '2568': 'พ.ศ. 2568',
+    '2569': 'พ.ศ. 2569',
+    '2570': 'พ.ศ. 2570',
+    '2571': 'พ.ศ. 2571',
+  };
 
   React.useEffect(() => {
     setYearFilter(selectedYear);
@@ -275,12 +293,16 @@ export default function PatientsPage() {
                 </div>
 
                 {/* District Filter */}
-                <Select value={districtFilter} onValueChange={(val) => { if (val) setDistrictFilter(val); }}>
+                <Select 
+                  value={districtFilter} 
+                  onValueChange={(val) => { if (val) setDistrictFilter(val); }}
+                  items={districtFilterItems}
+                >
                   <SelectTrigger className="h-8 text-xs w-full">
                     <SelectValue placeholder="อำเภอ" />
                   </SelectTrigger>
                   <SelectContent className="max-h-48">
-                    <SelectItem value="all">ทุกอำเภอ</SelectItem>
+                    <SelectItem value="all">ทุกอำเภอ (จ.กาฬสินธุ์)</SelectItem>
                     {kalasinDistricts.filter(d => d.id !== 'all').map(d => (
                       <SelectItem key={d.id} value={d.name.replace('อ.', '')}>
                         {d.name}
@@ -290,12 +312,16 @@ export default function PatientsPage() {
                 </Select>
 
                 {/* Fiscal Year Filter */}
-                <Select value={yearFilter} onValueChange={(val) => { if (val) setYearFilter(val); }}>
+                <Select 
+                  value={yearFilter} 
+                  onValueChange={(val) => { if (val) setYearFilter(val); }}
+                  items={yearFilterItems}
+                >
                   <SelectTrigger className="h-8 text-xs font-semibold text-blue-700 w-full">
                     <SelectValue placeholder="ปี พ.ศ." />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">ทุกปี พ.ศ.</SelectItem>
+                    <SelectItem value="all">ทุกปีงบประมาณ</SelectItem>
                     <SelectItem value="2568">พ.ศ. 2568</SelectItem>
                     <SelectItem value="2569">พ.ศ. 2569</SelectItem>
                     <SelectItem value="2570">พ.ศ. 2570</SelectItem>
