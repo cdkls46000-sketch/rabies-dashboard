@@ -1,35 +1,52 @@
 import { Alert } from '@/types';
 
-const DASHBOARD_URL = 'https://cdkls46000-sketch.github.io/rabies-dashboard/';
+export const DASHBOARD_URL = 'https://cdkls46000-sketch.github.io/rabies-dashboard/';
 
 /**
- * ข้อความสรุปกระชับสำหรับส่งผ่าน LINE URL Parameter
+ * ข้อความสรุปกระชับหน้าเดียวสำหรับส่งเข้า LINE
+ * (ออกแบบให้แสดงผลครบถ้วนในแชต LINE หน้าจอเดียว ไม่ถูกตัด ไม่ติดปุ่ม "See more")
  */
-export function formatConciseLineMessage(alert: Alert): string {
-  const headLabel = alert.head_no ? `[หัวที่ ${alert.head_no}]` : '';
-  const species = alert.animal_species || 'สัตว์';
+export function formatSingleScreenLineMessage(alert: Alert): string {
+  const headNo = alert.head_no || alert.alert_id;
+  const species = alert.animal_species || 'สุนัข';
+  const isCow = species === 'โค';
+  const isStray = alert.title.includes('จรจัด') || (!alert.title.includes('มีเจ้าของ') && !isCow);
+  const animalType = isCow ? 'โค (สัตว์เกษตรกร)' : (isStray ? 'สุนัขจรจัด' : 'สุนัขมีเจ้าของ');
+  
   const loc = alert.location || 'จ.กาฬสินธุ์';
-  const exp = alert.exposures_count && alert.exposures_count > 0 
-    ? `${alert.exposures_count} ราย รับวัคซีน PEP แล้ว` 
-    : 'ไม่มีผู้สัมผัสถูกกัด';
   const dateStr = alert.date_thai || alert.lab_date || 'ต.ค. 2569';
+  const sampleId = alert.sample_id ? ` (รหัส: ${alert.sample_id})` : '';
+  
+  const exposures = alert.exposures_count && alert.exposures_count > 0
+    ? `${alert.exposures_count} ราย (รับวัคซีน PEP ครบ/คนป่วย 0)`
+    : '0 ราย (ไม่มีผู้สัมผัสถูกกัด/คนป่วย 0)';
 
   const lines = [
-    `🚨 แจ้งเตือนโรคพิษสุนัขบ้า จ.กาฬสินธุ์ ${headLabel}`,
-    `📍 ${loc}`,
-    `📅 ยืนยันผล: ${dateStr}`,
-    `🔬 ผล Lab: ${species} ตรวจพบเชื้อบวก (Positive +)`,
-    `👥 ผู้สัมผัส: ${exp} (คนป่วย = 0 ราย)`,
-    `🛡️ เฝ้าระวัง 5 กม. / นำสัตว์ฉีดวัคซีนทันที`,
-    `🗺️ ข้อมูลระบาด: ${DASHBOARD_URL}`
+    `🚨 แจ้งเตือนพิษสุนัขบ้า จ.กาฬสินธุ์ [หัวที่ ${headNo}]`,
+    `📌 ตรวจพบเชื้อ: ${animalType} (ผลบวก DFA/PCR)`,
+    `📍 จุดเกิดเหตุ: ${loc} (เขตควบคุม 5 กม.)`,
+    `📅 วันที่ยืนยัน: ${dateStr} (ศวพ.ขอนแก่น)${sampleId}`,
+    `👥 ผู้สัมผัสโรค: ${exposures}`,
+    `🛡️ มาตรการ: ปูพรมฉีดวัคซีนรอบจุดเกิดเหตุ & กักสัตว์ 14 วัน`,
+    `📄 ผล Lab (PDF) & แผนที่: ${DASHBOARD_URL}`
   ];
 
   return lines.join('\n');
 }
 
 /**
+ * Alias สำหรับข้อความกระชับ
+ */
+export const formatConciseLineMessage = formatSingleScreenLineMessage;
+
+/**
+ * ค่าเริ่มต้นสำหรับการคัดลอกและแชร์ LINE: ใช้แบบหน้าเดียว (ไม่ติด See more)
+ */
+export const formatLineShareMessage = formatSingleScreenLineMessage;
+
+/**
  * ข้อความรายงานสถานการณ์ฉบับเต็มอย่างเป็นทางการ
- * (สำหรับคัดลอกลง Clipboard ไปวางในแชต LINE หรือเอกสารรายงาน)
+ * (สำหรับคัดลอกลง Clipboard ไปใช้ในหนังสือราชการหรือเอกสารรายงานทางการ)
  */
 export function formatFullAlertMessage(alert: Alert): string {
   const headLabel = alert.head_no ? `[หัวที่ ${alert.head_no}]` : '';
@@ -73,9 +90,6 @@ export function formatFullAlertMessage(alert: Alert): string {
   return lines.join('\n');
 }
 
-// Alias for backwards compatibility
-export const formatLineShareMessage = formatFullAlertMessage;
-
 /**
  * LINE Web Share URL (เฉพาะ URL ไม่มี Text เพื่อไม่ให้ชนขีดจำกัดความยาวของเซิร์ฟเวอร์ LINE ซึ่งทำให้เกิด HTTP ERROR 400)
  */
@@ -84,10 +98,10 @@ export function getLineWebShareUrl(_alert?: Alert): string {
 }
 
 /**
- * Deep Link สำหรับเปิด LINE App บน Desktop/Mobile
+ * Deep Link สำหรับเปิด LINE App บน Desktop/Mobile (ใช้ข้อความกระชับหน้าเดียว ไม่ติด See more)
  */
 export function getLineAppDeepLink(alert: Alert): string {
-  const concise = formatConciseLineMessage(alert);
+  const concise = formatSingleScreenLineMessage(alert);
   return `line://msg/text/${encodeURIComponent(concise)}`;
 }
 
@@ -98,8 +112,8 @@ export async function shareNative(alert: Alert): Promise<boolean> {
   if (typeof navigator !== 'undefined' && 'share' in navigator) {
     try {
       await navigator.share({
-        title: `แจ้งเตือนโรคพิษสุนัขบ้า จ.กาฬสินธุ์ หัวที่ ${alert.head_no || ''}`,
-        text: formatFullAlertMessage(alert),
+        title: `แจ้งเตือนพิษสุนัขบ้า จ.กาฬสินธุ์ หัวที่ ${alert.head_no || ''}`,
+        text: formatSingleScreenLineMessage(alert),
         url: DASHBOARD_URL,
       });
       return true;
@@ -112,14 +126,14 @@ export async function shareNative(alert: Alert): Promise<boolean> {
 }
 
 /**
- * ฟังก์ชันแชร์สำรอง: คัดลอกรายงานลงคลิปบอร์ด
+ * ฟังก์ชันแชร์สำรอง: คัดลอกข้อความกระชับลงคลิปบอร์ด
  */
 export function shareToLine(alert: Alert, onNotify?: (message: string) => void) {
-  const fullText = formatFullAlertMessage(alert);
+  const text = formatSingleScreenLineMessage(alert);
   if (typeof navigator !== 'undefined' && navigator.clipboard) {
-    navigator.clipboard.writeText(fullText).then(() => {
+    navigator.clipboard.writeText(text).then(() => {
       if (onNotify) {
-        onNotify(`📋 คัดลอกรายงานฉบับเต็มหัวที่ ${alert.head_no || ''} แล้ว นำไปวาง (Ctrl+V) ใน LINE ได้ทันที`);
+        onNotify(`📋 คัดลอกข้อความกระชับ (หน้าเดียว) หัวที่ ${alert.head_no || ''} แล้ว นำไปวาง (Ctrl+V) ใน LINE ได้ทันที`);
       }
     }).catch(() => {});
   }

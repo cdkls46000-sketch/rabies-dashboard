@@ -63,7 +63,7 @@ export default function AlertList() {
     if (navigator.clipboard) {
       navigator.clipboard.writeText(text);
       setCopiedId(alert.alert_id);
-      setToastMessage(`📋 คัดลอกข้อความหัวที่ ${alert.head_no || alert.alert_id} สำหรับส่งเข้า LINE เรียบร้อยแล้ว`);
+      setToastMessage(`📋 คัดลอกข้อความหัวที่ ${alert.head_no || alert.alert_id} (หน้าเดียว ไม่ติด See more) สำหรับส่งเข้า LINE เรียบร้อยแล้ว`);
       setTimeout(() => {
         setCopiedId(null);
       }, 3000);
