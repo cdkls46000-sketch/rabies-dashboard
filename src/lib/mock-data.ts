@@ -116,14 +116,14 @@ export const yearlySpeciesData: Record<FiscalYear, SpeciesData[]> = {
   '2571': [],
 };
 
-// จัดอันดับอำเภอที่พบเหตุการณ์ (สัตว์ผลบวก 32 + ผู้สัมผัส 133 = รวม 165 เคสรายงาน)
+// จัดอันดับอำเภอที่พบเหตุการณ์ (สัตว์ผลบวก 32 ตัว + ผู้สัมผัสโรค 133 ราย = รวม 165 เคสรายงาน)
 export const provinceRankData: ProvinceRankData[] = [
-  { province: 'อ.หนองกุงศรี', cases: 59 },
-  { province: 'อ.ยางตลาด', cases: 46 },
-  { province: 'อ.เมืองกาฬสินธุ์', cases: 31 },
-  { province: 'อ.กมลาไสย', cases: 12 },
-  { province: 'อ.ห้วยเม็ก', cases: 10 },
-  { province: 'อ.กุฉินารายณ์', cases: 7 },
+  { province: 'อ.หนองกุงศรี', cases: 59, positiveAnimals: 7, exposures: 52 },
+  { province: 'อ.ยางตลาด', cases: 46, positiveAnimals: 13, exposures: 33 },
+  { province: 'อ.เมืองกาฬสินธุ์', cases: 31, positiveAnimals: 8, exposures: 23 },
+  { province: 'อ.กมลาไสย', cases: 12, positiveAnimals: 1, exposures: 11 },
+  { province: 'อ.ห้วยเม็ก', cases: 10, positiveAnimals: 2, exposures: 8 },
+  { province: 'อ.กุฉินารายณ์', cases: 7, positiveAnimals: 1, exposures: 6 },
 ];
 
 export const yearlyProvinceRankData: Record<FiscalYear, ProvinceRankData[]> = {

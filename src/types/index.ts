@@ -162,6 +162,8 @@ export interface SpeciesData {
 export interface ProvinceRankData {
   province: string;
   cases: number;
+  positiveAnimals?: number;
+  exposures?: number;
 }
 
 export interface VaccineCoverageData {
