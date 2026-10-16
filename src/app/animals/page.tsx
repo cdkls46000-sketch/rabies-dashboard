@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import KpiCard from '@/components/dashboard/kpi-card';
 import { PawPrint, AlertTriangle, Clock, Syringe, MapPin } from 'lucide-react';
 import { 
@@ -11,13 +11,23 @@ import {
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { LabResultsChart } from '@/components/animals/lab-results-chart';
 import { DistrictVaccinationTable } from '@/components/animals/district-vaccination-table';
+import { PositiveAnimalTable } from '@/components/animals/positive-animal-table';
+import { AnimalAnalytics } from '@/components/animals/animal-analytics';
+import { QuarantineTracker } from '@/components/animals/quarantine-tracker';
+import { LabReportDialog } from '@/components/dashboard/lab-report-dialog';
+import { LineShareDialog } from '@/components/dashboard/line-share-dialog';
 import { useData } from '@/context/data-context';
+import { Alert } from '@/types';
 
 export default function AnimalsPage() {
-  const { selectedYear } = useData();
+  const { selectedYear, alerts, setToastMessage } = useData();
   const animalSummary = yearlyAnimalSummaries[selectedYear] || yearlyAnimalSummaries['2569'];
   const labSummary = yearlyLabSummaries[selectedYear] || yearlyLabSummaries['2569'];
   const districtData = yearlyDistrictVaccinationData[selectedYear] || [];
+
+  // Dialog state for Lab PDF and LINE Share
+  const [selectedPdfAlert, setSelectedPdfAlert] = useState<Alert | null>(null);
+  const [selectedLineAlert, setSelectedLineAlert] = useState<Alert | null>(null);
 
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -31,7 +41,7 @@ export default function AnimalsPage() {
             </span>
           </h1>
           <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
-            ข้อมูลตรวจชันสูตรทางห้องปฏิบัติการ และความครอบคลุมการสร้างเสริมภูมิคุ้มกันโรคในสุนัข-แมว ปี พ.ศ. {selectedYear}
+            ข้อมูลตรวจชันสูตรทางห้องปฏิบัติการ ทะเบียนสัตว์ผลบวก และความครอบคลุมการสร้างเสริมภูมิคุ้มกันโรคในสัตว์ ปี พ.ศ. {selectedYear}
           </p>
         </div>
       </div>
@@ -67,6 +77,16 @@ export default function AnimalsPage() {
           colorClass="text-emerald-500" 
         />
       </div>
+
+      {/* Animal Deep Analytics: Ownership, 5km Zones, Vaccination History */}
+      <AnimalAnalytics selectedYear={selectedYear} />
+
+      {/* Positive Animal Table: 32 Confirmed Heads Registry with Search, Filters, PDF & LINE */}
+      <PositiveAnimalTable 
+        alerts={alerts}
+        onOpenPdf={setSelectedPdfAlert}
+        onShareLine={setSelectedLineAlert}
+      />
 
       {/* Lab Results and District Table */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-5 sm:gap-6">
@@ -111,6 +131,25 @@ export default function AnimalsPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* 14-Day Animal Observation & Quarantine Tracker */}
+      <QuarantineTracker />
+
+      {/* Lab Report PDF Dialog */}
+      <LabReportDialog 
+        alert={selectedPdfAlert}
+        isOpen={!!selectedPdfAlert}
+        onClose={() => setSelectedPdfAlert(null)}
+        onNotify={setToastMessage}
+      />
+
+      {/* LINE Group Share Dialog */}
+      <LineShareDialog 
+        alert={selectedLineAlert}
+        isOpen={!!selectedLineAlert}
+        onClose={() => setSelectedLineAlert(null)}
+        onNotify={setToastMessage}
+      />
     </div>
   );
 }
