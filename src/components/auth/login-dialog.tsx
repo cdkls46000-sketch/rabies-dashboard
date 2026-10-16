@@ -38,7 +38,7 @@ export function LoginDialog() {
       const success = login(username, password);
       setIsLoading(false);
       if (!success) {
-        setError('ชื่อผู้ใช้งานหรือรหัสผ่านไม่ถูกต้อง (ทดสอบ: juthamas / Juthamas@2569 หรือ kongrit / Kongrit@2569)');
+        setError('ชื่อผู้ใช้งานหรือรหัสผ่านไม่ถูกต้อง กรุณาตรวจสอบอีกครั้ง หรือติดต่อผู้ดูแลระบบ');
       } else {
         setUsername('');
         setPassword('');
@@ -125,18 +125,6 @@ export function LoginDialog() {
               </div>
             </button>
           </div>
-
-          {/* Generated Credential Reference Box */}
-          <div className="p-2 bg-white/80 border border-blue-200/60 rounded-lg text-[10px] text-slate-600 space-y-0.5">
-            <div className="font-semibold text-blue-900 flex items-center gap-1">
-              <KeyRound size={11} className="text-blue-600" />
-              <span>รหัสผ่านเริ่มต้นที่ระบบสร้างให้ (เปลี่ยนได้ทีหลัง):</span>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-1 text-[10px] text-slate-600 font-mono">
-              <p>• จุฑามาศ: <span className="text-blue-700 font-bold">Juthamas@2569</span></p>
-              <p>• คงฤทธิ์: <span className="text-indigo-700 font-bold">Kongrit@2569</span></p>
-            </div>
-          </div>
         </div>
 
         {/* Separator */}
@@ -180,7 +168,7 @@ export function LoginDialog() {
                 type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="เช่น Juthamas@2569 หรือ Kongrit@2569"
+                placeholder="กรอกรหัสผ่านของคุณ"
                 className="h-9 text-xs pl-8 pr-8 font-medium"
                 required
               />
