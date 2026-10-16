@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { useData } from '@/context/data-context';
 import { Alert } from '@/types';
 import { shareToLine, formatLineShareMessage } from '@/lib/line-share';
+import { LineShareDialog } from '@/components/dashboard/line-share-dialog';
 import { 
   Share2, 
   Copy, 
@@ -29,6 +30,7 @@ export default function AlertList() {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [showAll, setShowAll] = useState<boolean>(false);
   const [copiedId, setCopiedId] = useState<number | null>(null);
+  const [shareAlert, setShareAlert] = useState<Alert | null>(null);
 
   // Filter alerts by district or recent 1 month
   const filteredAlerts = useMemo(() => {
@@ -233,9 +235,9 @@ export default function AlertList() {
                     <Button
                       type="button"
                       size="sm"
-                      onClick={() => shareToLine(alert, setToastMessage)}
+                      onClick={() => setShareAlert(alert)}
                       className="bg-[#06C755] hover:bg-[#05b34c] text-white text-xs font-semibold h-8 px-3 gap-1.5 shadow-xs cursor-pointer active:scale-95 flex-1 lg:flex-initial"
-                      title="แชร์ข้อมูลเหตุการณ์และผล Lab เข้ากลุ่ม LINE ทันที"
+                      title="แชร์ข้อมูลเหตุการณ์และผล Lab เข้ากลุ่ม LINE"
                     >
                       <Share2 size={13} />
                       <span>แชร์เข้า LINE</span>
@@ -293,6 +295,13 @@ export default function AlertList() {
           </div>
         )}
       </CardContent>
+
+      <LineShareDialog
+        alert={shareAlert}
+        isOpen={!!shareAlert}
+        onClose={() => setShareAlert(null)}
+        onNotify={setToastMessage}
+      />
     </Card>
   );
 }

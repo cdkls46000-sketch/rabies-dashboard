@@ -1,8 +1,9 @@
 import { Alert } from '@/types';
 
+const DASHBOARD_URL = 'https://cdkls46000-sketch.github.io/rabies-dashboard/';
+
 /**
  * ข้อความสรุปกระชับสำหรับส่งผ่าน LINE URL Parameter
- * (จำกัดความยาวเพื่อไม่ให้เกินขีดจำกัดของเซิร์ฟเวอร์ LINE ซึ่งทำให้เกิด HTTP ERROR 400)
  */
 export function formatConciseLineMessage(alert: Alert): string {
   const headLabel = alert.head_no ? `[หัวที่ ${alert.head_no}]` : '';
@@ -20,7 +21,7 @@ export function formatConciseLineMessage(alert: Alert): string {
     `🔬 ผล Lab: ${species} ตรวจพบเชื้อบวก (Positive +)`,
     `👥 ผู้สัมผัส: ${exp} (คนป่วย = 0 ราย)`,
     `🛡️ เฝ้าระวัง 5 กม. / นำสัตว์ฉีดวัคซีนทันที`,
-    `🗺️ ข้อมูลระบาด: https://cdkls46000-sketch.github.io/rabies-dashboard/`
+    `🗺️ ข้อมูลระบาด: ${DASHBOARD_URL}`
   ];
 
   return lines.join('\n');
@@ -66,7 +67,7 @@ export function formatFullAlertMessage(alert: Alert): string {
   lines.push(`  4. หากถูกกัด/ข่วน ให้ล้างแผลด้วยน้ำและสบู่ 15 นาที แล้วรีบพบแพทย์ทันที`);
   lines.push(`━━━━━━━━━━━━━━━━━━━━━━━━━━`);
   lines.push(`🗺️ ตรวจสอบแผนที่จุดเกิดเหตุและข้อมูลระบาดวิทยา:`);
-  lines.push(`https://cdkls46000-sketch.github.io/rabies-dashboard/`);
+  lines.push(`${DASHBOARD_URL}`);
   lines.push(`กลุ่มงานควบคุมโรคติดต่อ สสจ.กาฬสินธุ์ ร่วมกับ สำนักงานปศุสัตว์จังหวัดกาฬสินธุ์`);
 
   return lines.join('\n');
@@ -76,23 +77,50 @@ export function formatFullAlertMessage(alert: Alert): string {
 export const formatLineShareMessage = formatFullAlertMessage;
 
 /**
- * ฟังก์ชันแชร์เข้า LINE:
- * 1. คัดลอกรายงานฉบับเต็มลง Clipboard ให้อัตโนมัติ (เพื่อให้ User สามารถกด Paste ข้อมูลเต็มได้)
- * 2. เปิดหน้าต่างแชร์ของ LINE ด้วยข้อความกระชับความยาวปลอดภัย (ป้องกัน HTTP ERROR 400)
+ * LINE Web Share URL (เฉพาะ URL ไม่มี Text เพื่อไม่ให้ชนขีดจำกัดความยาวของเซิร์ฟเวอร์ LINE ซึ่งทำให้เกิด HTTP ERROR 400)
+ */
+export function getLineWebShareUrl(_alert?: Alert): string {
+  return `https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(DASHBOARD_URL)}`;
+}
+
+/**
+ * Deep Link สำหรับเปิด LINE App บน Desktop/Mobile
+ */
+export function getLineAppDeepLink(alert: Alert): string {
+  const concise = formatConciseLineMessage(alert);
+  return `line://msg/text/${encodeURIComponent(concise)}`;
+}
+
+/**
+ * Native Share API (สำหรับโทรศัพท์มือถือ หรือเบราว์เซอร์ที่รองรับ Web Share)
+ */
+export async function shareNative(alert: Alert): Promise<boolean> {
+  if (typeof navigator !== 'undefined' && 'share' in navigator) {
+    try {
+      await navigator.share({
+        title: `แจ้งเตือนโรคพิษสุนัขบ้า จ.กาฬสินธุ์ หัวที่ ${alert.head_no || ''}`,
+        text: formatFullAlertMessage(alert),
+        url: DASHBOARD_URL,
+      });
+      return true;
+    } catch {
+      // User cancelled or unsupported
+      return false;
+    }
+  }
+  return false;
+}
+
+/**
+ * ฟังก์ชันแชร์สำรอง: คัดลอกรายงานลงคลิปบอร์ด
  */
 export function shareToLine(alert: Alert, onNotify?: (message: string) => void) {
-  // 1. Copy full comprehensive text to clipboard
   const fullText = formatFullAlertMessage(alert);
   if (typeof navigator !== 'undefined' && navigator.clipboard) {
-    navigator.clipboard.writeText(fullText).catch(() => {});
-  }
-
-  // 2. Open concise text in LINE to prevent HTTP 400
-  const conciseText = formatConciseLineMessage(alert);
-  const lineUrl = `https://line.me/R/msg/text/?${encodeURIComponent(conciseText)}`;
-  window.open(lineUrl, '_blank');
-
-  if (onNotify) {
-    onNotify(`📲 เปิดแชร์เข้า LINE เรียบร้อยแล้ว (พร้อมคัดลอกรายงานฉบับเต็มลงคลิปบอร์ดให้แล้ว สามารถกด Paste ในแชตได้ด้วย)`);
+    navigator.clipboard.writeText(fullText).then(() => {
+      if (onNotify) {
+        onNotify(`📋 คัดลอกรายงานฉบับเต็มหัวที่ ${alert.head_no || ''} แล้ว นำไปวาง (Ctrl+V) ใน LINE ได้ทันที`);
+      }
+    }).catch(() => {});
   }
 }

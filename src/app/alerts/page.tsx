@@ -24,6 +24,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Alert } from '@/types';
 import { shareToLine, formatLineShareMessage } from '@/lib/line-share';
+import { LineShareDialog } from '@/components/dashboard/line-share-dialog';
 
 const alertRules = [
   { id: 1, level: 'critical', desc: 'พบสัตว์ติดเชื้อยืนยันผลบวกทางห้องปฏิบัติการ (DFA/PCR +) ส่งตรวจโดยเครือข่ายปศุสัตว์' },
@@ -39,6 +40,7 @@ export default function AlertsPage() {
   const { alerts, selectedYear, setToastMessage } = useData();
   const [activeTab, setActiveTab] = useState('all');
   const [copiedId, setCopiedId] = useState<number | null>(null);
+  const [shareAlert, setShareAlert] = useState<Alert | null>(null);
 
   const recentCount = alerts.filter(a => a.is_recent_1_month).length;
   const totalExposures = alerts.reduce((sum, a) => sum + (a.exposures_count || 0), 0);
@@ -290,9 +292,9 @@ export default function AlertsPage() {
                         <Button
                           type="button"
                           size="sm"
-                          onClick={() => shareToLine(alert, setToastMessage)}
+                          onClick={() => setShareAlert(alert)}
                           className="bg-[#06C755] hover:bg-[#05b34c] text-white text-xs font-semibold h-8 px-3 gap-1.5 shadow-xs cursor-pointer active:scale-95 flex-1 lg:flex-initial"
-                          title="แชร์ข้อมูลเหตุการณ์และผล Lab เข้ากลุ่ม LINE ทันที"
+                          title="แชร์ข้อมูลเหตุการณ์และผล Lab เข้ากลุ่ม LINE"
                         >
                           <Share2 size={13} />
                           <span>แชร์เข้า LINE</span>
@@ -353,6 +355,13 @@ export default function AlertsPage() {
           </CardContent>
         </Card>
       </div>
+
+      <LineShareDialog
+        alert={shareAlert}
+        isOpen={!!shareAlert}
+        onClose={() => setShareAlert(null)}
+        onNotify={setToastMessage}
+      />
     </div>
   );
 }
