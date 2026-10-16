@@ -38,7 +38,7 @@ export function LoginDialog() {
       const success = login(username, password);
       setIsLoading(false);
       if (!success) {
-        setError('ชื่อผู้ใช้งานหรือรหัสผ่านไม่ถูกต้อง (ทดสอบ: officer / password หรือ admin / admin)');
+        setError('ชื่อผู้ใช้งานหรือรหัสผ่านไม่ถูกต้อง (ทดสอบ: juthamas / Juthamas@2569 หรือ kongrit / Kongrit@2569)');
       } else {
         setUsername('');
         setPassword('');
@@ -96,14 +96,14 @@ export function LoginDialog() {
             <button
               type="button"
               onClick={() => handleDemoLogin('officer')}
-              className="p-2 bg-white hover:bg-blue-50/50 border border-blue-200 rounded-lg text-left transition-all hover:border-blue-400 active:scale-98 shadow-xs cursor-pointer group"
+              className="p-2.5 bg-white hover:bg-blue-50/60 border border-blue-200 rounded-lg text-left transition-all hover:border-blue-400 active:scale-98 shadow-xs cursor-pointer group"
             >
               <div className="flex items-center gap-2">
                 <div className="w-7 h-7 rounded-md bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-xs shrink-0 group-hover:bg-blue-600 group-hover:text-white transition-colors">
-                  พว
+                  จบ
                 </div>
                 <div className="truncate">
-                  <p className="text-xs font-bold text-slate-800 truncate">พว. กัลยา</p>
+                  <p className="text-xs font-bold text-slate-800 truncate">คุณจุฑามาศ บัวลอย</p>
                   <p className="text-[10px] text-slate-500 truncate">จนท. ควบคุมโรค สสจ.</p>
                 </div>
               </div>
@@ -112,18 +112,30 @@ export function LoginDialog() {
             <button
               type="button"
               onClick={() => handleDemoLogin('admin')}
-              className="p-2 bg-white hover:bg-indigo-50/50 border border-indigo-200 rounded-lg text-left transition-all hover:border-indigo-400 active:scale-98 shadow-xs cursor-pointer group"
+              className="p-2.5 bg-white hover:bg-indigo-50/60 border border-indigo-200 rounded-lg text-left transition-all hover:border-indigo-400 active:scale-98 shadow-xs cursor-pointer group"
             >
               <div className="flex items-center gap-2">
                 <div className="w-7 h-7 rounded-md bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-xs shrink-0 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
-                  นพ
+                  คว
                 </div>
                 <div className="truncate">
-                  <p className="text-xs font-bold text-slate-800 truncate">นพ. วรวิทย์</p>
+                  <p className="text-xs font-bold text-slate-800 truncate">คุณคงฤทธิ์ วันจรูญ</p>
                   <p className="text-[10px] text-slate-500 truncate">หัวหน้ากลุ่มงาน (Admin)</p>
                 </div>
               </div>
             </button>
+          </div>
+
+          {/* Generated Credential Reference Box */}
+          <div className="p-2 bg-white/80 border border-blue-200/60 rounded-lg text-[10px] text-slate-600 space-y-0.5">
+            <div className="font-semibold text-blue-900 flex items-center gap-1">
+              <KeyRound size={11} className="text-blue-600" />
+              <span>รหัสผ่านเริ่มต้นที่ระบบสร้างให้ (เปลี่ยนได้ทีหลัง):</span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-1 text-[10px] text-slate-600 font-mono">
+              <p>• จุฑามาศ: <span className="text-blue-700 font-bold">Juthamas@2569</span></p>
+              <p>• คงฤทธิ์: <span className="text-indigo-700 font-bold">Kongrit@2569</span></p>
+            </div>
           </div>
         </div>
 
@@ -153,7 +165,7 @@ export function LoginDialog() {
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                placeholder="เช่น officer หรือ admin"
+                placeholder="เช่น juthamas หรือ kongrit"
                 className="h-9 text-xs pl-8 font-medium"
                 required
               />
@@ -168,7 +180,7 @@ export function LoginDialog() {
                 type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="เช่น password หรือ admin"
+                placeholder="เช่น Juthamas@2569 หรือ Kongrit@2569"
                 className="h-9 text-xs pl-8 pr-8 font-medium"
                 required
               />

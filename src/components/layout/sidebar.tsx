@@ -107,7 +107,7 @@ export function Sidebar() {
               <div className="flex items-center gap-2.5 min-w-0">
                 <Avatar className="h-8 w-8 ring-1 ring-emerald-500 shrink-0">
                   <AvatarFallback className="bg-emerald-600 text-white font-bold text-xs">
-                    {currentUser.role === 'admin' ? 'นพ' : 'พว'}
+                    {currentUser.role === 'admin' ? 'คว' : 'จบ'}
                   </AvatarFallback>
                 </Avatar>
                 <div className="truncate min-w-0">

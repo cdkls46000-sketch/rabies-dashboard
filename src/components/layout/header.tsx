@@ -189,7 +189,7 @@ export function Header() {
             >
               <Avatar className="h-7 w-7 sm:h-8 sm:w-8 bg-emerald-600">
                 <AvatarFallback className="bg-emerald-600 text-white text-[10px] font-bold">
-                  {currentUser.role === 'admin' ? 'นพ' : 'พว'}
+                  {currentUser.role === 'admin' ? 'คว' : 'จบ'}
                 </AvatarFallback>
               </Avatar>
               <div className="hidden xl:block text-left pr-1">

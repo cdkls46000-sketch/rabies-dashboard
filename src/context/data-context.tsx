@@ -22,34 +22,44 @@ import {
 import { maskThaiName } from '@/lib/pdpa';
 
 export const DEMO_USERS: Record<string, { password: string; user: AuthUser }> = {
-  officer: {
-    password: 'password',
+  juthamas: {
+    password: 'Juthamas@2569',
     user: {
-      username: 'officer',
-      name: 'พว. กัลยา สุขเกษม',
+      username: 'juthamas',
+      name: 'คุณจุฑามาศ บัวลอย',
       role: 'officer',
-      position: 'พยาบาลวิชาชีพชำนาญการ (งานควบคุมโรคติดต่อ)',
+      position: 'เจ้าหน้าที่กลุ่มงานควบคุมโรคติดต่อ',
       organization: 'สสจ.กาฬสินธุ์',
     },
   },
-  admin: {
-    password: 'admin',
+  officer: {
+    password: 'Juthamas@2569',
     user: {
-      username: 'admin',
-      name: 'นพ. วรวิทย์ ศรีสุวรรณ',
+      username: 'juthamas',
+      name: 'คุณจุฑามาศ บัวลอย',
+      role: 'officer',
+      position: 'เจ้าหน้าที่กลุ่มงานควบคุมโรคติดต่อ',
+      organization: 'สสจ.กาฬสินธุ์',
+    },
+  },
+  kongrit: {
+    password: 'Kongrit@2569',
+    user: {
+      username: 'kongrit',
+      name: 'คุณคงฤทธิ์ วันจรูญ',
       role: 'admin',
-      position: 'นายแพทย์ชำนาญการพิเศษ (หัวหน้ากลุ่มงานควบคุมโรค)',
+      position: 'หัวหน้ากลุ่มงานควบคุมโรคติดต่อ (Admin)',
       organization: 'สสจ.กาฬสินธุ์ (ศูนย์ปฏิบัติการ EOC)',
     },
   },
-  kalasin: {
-    password: 'password',
+  admin: {
+    password: 'Kongrit@2569',
     user: {
-      username: 'kalasin',
-      name: 'เจ้าหน้าที่กลุ่มงานควบคุมโรคติดต่อ',
-      role: 'officer',
-      position: 'นักวิชาการสาธารณสุขปฏิบัติการ',
-      organization: 'สสจ.กาฬสินธุ์',
+      username: 'kongrit',
+      name: 'คุณคงฤทธิ์ วันจรูญ',
+      role: 'admin',
+      position: 'หัวหน้ากลุ่มงานควบคุมโรคติดต่อ (Admin)',
+      organization: 'สสจ.กาฬสินธุ์ (ศูนย์ปฏิบัติการ EOC)',
     },
   },
 };
@@ -155,7 +165,15 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       const savedUser = localStorage.getItem('rabies_auth_user');
       if (savedUser) {
         const parsed = JSON.parse(savedUser) as AuthUser;
-        setCurrentUser(parsed);
+        if (parsed.name.includes('กัลยา') || parsed.name.includes('สุขเกษม') || parsed.username === 'officer') {
+          setCurrentUser(DEMO_USERS['juthamas'].user);
+          localStorage.setItem('rabies_auth_user', JSON.stringify(DEMO_USERS['juthamas'].user));
+        } else if (parsed.name.includes('วรวิทย์') || parsed.name.includes('ศรีสุวรรณ') || parsed.username === 'admin') {
+          setCurrentUser(DEMO_USERS['kongrit'].user);
+          localStorage.setItem('rabies_auth_user', JSON.stringify(DEMO_USERS['kongrit'].user));
+        } else {
+          setCurrentUser(parsed);
+        }
         // If officer is logged in, restore their preference or default to unmasked
         const savedPdpa = localStorage.getItem('rabies_kalasin_pdpa');
         setIsPdpaActive(savedPdpa === 'true');
@@ -200,12 +218,40 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   // Auth Functions
   const login = (username: string, password: string): boolean => {
     const cleanUser = username.trim().toLowerCase();
-    const found = DEMO_USERS[cleanUser];
+    const cleanPass = password.trim();
+    
+    // Normalize aliases
+    let targetKey = cleanUser;
+    if (
+      cleanUser === 'officer' || 
+      cleanUser === 'juthamas' || 
+      cleanUser === 'jukhamas' || 
+      cleanUser.includes('จุฑา') || 
+      cleanUser.includes('จุฆา')
+    ) {
+      targetKey = 'juthamas';
+    } else if (
+      cleanUser === 'admin' || 
+      cleanUser === 'kongrit' || 
+      cleanUser.includes('คงฤทธิ์')
+    ) {
+      targetKey = 'kongrit';
+    }
+
+    const found = DEMO_USERS[targetKey] || DEMO_USERS[cleanUser];
     
     let authUser: AuthUser | null = null;
-    if (found && (found.password === password || password === 'password' || password === 'admin')) {
-      authUser = found.user;
-    } else if (cleanUser && password) {
+    if (found) {
+      if (
+        cleanPass === found.password || 
+        cleanPass === 'password' || 
+        cleanPass === 'admin' ||
+        cleanPass === 'Juthamas@2569' ||
+        cleanPass === 'Kongrit@2569'
+      ) {
+        authUser = found.user;
+      }
+    } else if (cleanUser && cleanPass) {
       authUser = {
         username: cleanUser,
         name: `จนท. ${username.trim()}`,
@@ -239,7 +285,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   };
 
   const loginDemo = (role: 'officer' | 'admin' = 'officer') => {
-    const target = role === 'admin' ? DEMO_USERS['admin'] : DEMO_USERS['officer'];
+    const target = role === 'admin' ? DEMO_USERS['kongrit'] : DEMO_USERS['juthamas'];
     login(target.user.username, target.password);
   };
 
