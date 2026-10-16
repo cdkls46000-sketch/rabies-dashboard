@@ -81,13 +81,6 @@ export default function AnimalsPage() {
       {/* Animal Deep Analytics: Ownership, 5km Zones, Vaccination History */}
       <AnimalAnalytics selectedYear={selectedYear} />
 
-      {/* Positive Animal Table: 32 Confirmed Heads Registry with Search, Filters, PDF & LINE */}
-      <PositiveAnimalTable 
-        alerts={alerts}
-        onOpenPdf={setSelectedPdfAlert}
-        onShareLine={setSelectedLineAlert}
-      />
-
       {/* Lab Results and District Table */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-5 sm:gap-6">
         <Card className="xl:col-span-1">
@@ -134,6 +127,13 @@ export default function AnimalsPage() {
 
       {/* 14-Day Animal Observation & Quarantine Tracker */}
       <QuarantineTracker />
+
+      {/* Positive Animal Table: 32 Confirmed Heads Registry with Search, Filters, PDF & LINE */}
+      <PositiveAnimalTable 
+        alerts={alerts}
+        onOpenPdf={setSelectedPdfAlert}
+        onShareLine={setSelectedLineAlert}
+      />
 
       {/* Lab Report PDF Dialog */}
       <LabReportDialog 
