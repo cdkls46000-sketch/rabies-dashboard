@@ -103,7 +103,14 @@ export default function PatientsPage() {
         </div>
 
         <Button 
-          onClick={() => setIsNewCaseOpen(true)}
+          onClick={() => {
+            if (!isLoggedIn) {
+              setLoginReason('เข้าสู่ระบบสำหรับเจ้าหน้าที่เพื่อบันทึกผู้สัมผัสโรครายใหม่');
+              setIsLoginOpen(true);
+            } else {
+              setIsNewCaseOpen(true);
+            }
+          }}
           className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white text-xs h-8 sm:h-9 gap-1.5 shadow-sm shadow-blue-500/20 active:scale-98"
         >
           <PlusCircle size={15} /> บันทึกผู้สัมผัสโรครายใหม่
@@ -153,7 +160,7 @@ export default function PatientsPage() {
       </div>
 
       {/* PDPA Privacy Protection Notice & Auth Controls Banner */}
-      {isLoggedIn && currentUser ? (
+      {isLoggedIn && currentUser && (
         <div className="p-3 sm:p-4 bg-emerald-50/90 border border-emerald-200/90 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs shadow-2xs">
           <div className="flex items-start gap-2.5">
             <div className="p-1.5 bg-emerald-100 rounded-lg text-emerald-700 shrink-0 mt-0.5">
@@ -190,41 +197,61 @@ export default function PatientsPage() {
             </Button>
           </div>
         </div>
-      ) : (
-        <div className="p-3 sm:p-4 bg-amber-50/90 border border-amber-200/90 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs shadow-2xs">
-          <div className="flex items-start gap-2.5">
-            <div className="p-1.5 bg-amber-100 rounded-lg text-amber-700 shrink-0 mt-0.5">
-              <Lock className="w-4 h-4" />
-            </div>
-            <div>
-              <div className="font-bold text-amber-950 flex flex-wrap items-center gap-1.5 sm:gap-2">
-                <span>โหมดบุคคลทั่วไป (PDPA Masked)</span>
-                <Badge variant="outline" className="text-[10px] bg-amber-100/80 text-amber-800 border-amber-300">
-                  คุ้มครองข้อมูลส่วนบุคคล 100%
-                </Badge>
-              </div>
-              <p className="text-[11px] text-amber-800 mt-0.5 leading-relaxed">
-                รายชื่อ-สกุลถูกเข้ารหัสปกปิดตาม พ.ร.บ. คุ้มครองข้อมูลส่วนบุคคล พ.ศ. 2562 (เช่น ส*** ภ***) — เจ้าหน้าที่สาธารณสุขกรุณาเข้าสู่ระบบเพื่อดูชื่อเต็มและบันทึกติดตามการฉีดวัคซีน
-              </p>
-            </div>
-          </div>
-          <Button
-            size="sm"
-            onClick={() => {
-              setLoginReason('เข้าสู่ระบบสำหรับเจ้าหน้าที่สาธารณสุขเพื่อดูชื่อ-สกุลจริงของผู้สัมผัสโรคตาม PDPA และบันทึกติดตามวัคซีน');
-              setIsLoginOpen(true);
-            }}
-            className="bg-amber-600 hover:bg-amber-700 text-white text-xs h-8 px-3.5 font-semibold shrink-0 gap-1.5 shadow-xs cursor-pointer active:scale-95 self-start sm:self-center"
-          >
-            <LogIn size={13} />
-            <span>เข้าสู่ระบบเพื่อดูชื่อเต็ม</span>
-          </Button>
-        </div>
       )}
 
       {/* Main Table and Chart */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-5 sm:gap-6">
-        <Card className="xl:col-span-2">
+        {!isLoggedIn ? (
+          <Card className="xl:col-span-2 border-slate-200 shadow-xs overflow-hidden flex flex-col justify-between">
+            <CardHeader className="p-4 sm:p-5 pb-3 border-b bg-slate-50/70">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div>
+                  <CardTitle className="text-base sm:text-lg flex items-center gap-2">
+                    <Lock size={18} className="text-amber-600 shrink-0" />
+                    <span>ทะเบียนผู้สัมผัสโรคระดับหมู่บ้าน</span>
+                  </CardTitle>
+                  <CardDescription className="text-xs mt-0.5">
+                    จำกัดการเข้าถึงเฉพาะเจ้าหน้าที่สาธารณสุขตาม พ.ร.บ. คุ้มครองข้อมูลส่วนบุคคล (PDPA)
+                  </CardDescription>
+                </div>
+                <Badge variant="outline" className="bg-amber-50 text-amber-800 border-amber-300 text-xs w-fit">
+                  🔒 ซ่อนข้อมูล (ยังไม่ได้เข้าสู่ระบบ)
+                </Badge>
+              </div>
+            </CardHeader>
+            <CardContent className="p-8 sm:p-14 text-center flex flex-col items-center justify-center space-y-4 bg-white flex-1">
+              <div className="w-16 h-16 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center border border-amber-200 shadow-xs">
+                <Lock size={32} />
+              </div>
+
+              <div className="max-w-md space-y-2">
+                <h3 className="text-base sm:text-lg font-bold text-slate-900">
+                  ทะเบียนผู้สัมผัสโรคระดับหมู่บ้านถูกซ่อนไว้
+                </h3>
+                <p className="text-xs text-slate-600 leading-relaxed">
+                  เนื่องจากข้อมูลประกอบด้วยรายชื่อ-สกุล เลขประจำตัว HN ที่อยู่ระดับหมู่บ้าน และประวัติการรับวัคซีน PEP รายบุคคล ระบบจึงซ่อนข้อมูลไว้เพื่อคุ้มครองข้อมูลส่วนบุคคล (PDPA)
+                </p>
+                <p className="text-[11px] text-slate-500 font-medium">
+                  เจ้าหน้าที่สาธารณสุขและทีมสอบสวนโรค One Health กรุณาเข้าสู่ระบบเพื่อดูข้อมูลและบันทึกติดตามการฉีดวัคซีน
+                </p>
+              </div>
+
+              <div className="pt-2">
+                <Button
+                  onClick={() => {
+                    setLoginReason('เข้าสู่ระบบสำหรับเจ้าหน้าที่สาธารณสุขเพื่อดูทะเบียนผู้สัมผัสโรคระดับหมู่บ้าน');
+                    setIsLoginOpen(true);
+                  }}
+                  className="bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs h-9 px-5 gap-2 shadow-xs cursor-pointer active:scale-95"
+                >
+                  <LogIn size={15} />
+                  <span>เข้าสู่ระบบเพื่อแสดงทะเบียนผู้สัมผัสโรค</span>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        ) : (
+          <Card className="xl:col-span-2">
           <CardHeader className="p-3.5 sm:p-5">
             <div className="flex flex-col gap-3">
               <div>
@@ -499,6 +526,7 @@ export default function PatientsPage() {
             </div>
           </CardContent>
         </Card>
+        )}
         
         {/* Chart card */}
         <Card>

@@ -12,7 +12,14 @@ import { Badge } from '@/components/ui/badge';
 import { useData } from '@/context/data-context';
 
 export default function DashboardPage() {
-  const { dashboardSummary, setIsNewCaseOpen, selectedYear } = useData();
+  const { 
+    dashboardSummary, 
+    setIsNewCaseOpen, 
+    selectedYear, 
+    isLoggedIn, 
+    setIsLoginOpen, 
+    setLoginReason 
+  } = useData();
 
   return (
     <div className="flex-1 space-y-4 sm:space-y-5">
@@ -31,7 +38,14 @@ export default function DashboardPage() {
         </div>
 
         <Button 
-          onClick={() => setIsNewCaseOpen(true)}
+          onClick={() => {
+            if (!isLoggedIn) {
+              setLoginReason('เข้าสู่ระบบสำหรับเจ้าหน้าที่เพื่อบันทึกข้อมูลผู้สัมผัสโรคใหม่');
+              setIsLoginOpen(true);
+            } else {
+              setIsNewCaseOpen(true);
+            }
+          }}
           className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white text-xs h-8 sm:h-9 gap-1.5 shadow-sm shadow-blue-500/20 active:scale-98"
         >
           <PlusCircle size={15} /> บันทึกข้อมูลผู้สัมผัสโรคใหม่
