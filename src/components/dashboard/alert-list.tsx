@@ -233,7 +233,7 @@ export default function AlertList() {
                     <Button
                       type="button"
                       size="sm"
-                      onClick={() => shareToLine(alert)}
+                      onClick={() => shareToLine(alert, setToastMessage)}
                       className="bg-[#06C755] hover:bg-[#05b34c] text-white text-xs font-semibold h-8 px-3 gap-1.5 shadow-xs cursor-pointer active:scale-95 flex-1 lg:flex-initial"
                       title="แชร์ข้อมูลเหตุการณ์และผล Lab เข้ากลุ่ม LINE ทันที"
                     >

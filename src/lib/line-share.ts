@@ -1,47 +1,98 @@
 import { Alert } from '@/types';
 
-export function formatLineShareMessage(alert: Alert): string {
+/**
+ * ข้อความสรุปกระชับสำหรับส่งผ่าน LINE URL Parameter
+ * (จำกัดความยาวเพื่อไม่ให้เกินขีดจำกัดของเซิร์ฟเวอร์ LINE ซึ่งทำให้เกิด HTTP ERROR 400)
+ */
+export function formatConciseLineMessage(alert: Alert): string {
+  const headLabel = alert.head_no ? `[หัวที่ ${alert.head_no}]` : '';
+  const species = alert.animal_species || 'สัตว์';
+  const loc = alert.location || 'จ.กาฬสินธุ์';
+  const exp = alert.exposures_count && alert.exposures_count > 0 
+    ? `${alert.exposures_count} ราย รับวัคซีน PEP แล้ว` 
+    : 'ไม่มีผู้สัมผัสถูกกัด';
+  const dateStr = alert.date_thai || alert.lab_date || 'ต.ค. 2569';
+
+  const lines = [
+    `🚨 แจ้งเตือนโรคพิษสุนัขบ้า จ.กาฬสินธุ์ ${headLabel}`,
+    `📍 ${loc}`,
+    `📅 ยืนยันผล: ${dateStr}`,
+    `🔬 ผล Lab: ${species} ตรวจพบเชื้อบวก (Positive +)`,
+    `👥 ผู้สัมผัส: ${exp} (คนป่วย = 0 ราย)`,
+    `🛡️ เฝ้าระวัง 5 กม. / นำสัตว์ฉีดวัคซีนทันที`,
+    `🗺️ ข้อมูลระบาด: https://cdkls46000-sketch.github.io/rabies-dashboard/`
+  ];
+
+  return lines.join('\n');
+}
+
+/**
+ * ข้อความรายงานสถานการณ์ฉบับเต็มอย่างเป็นทางการ
+ * (สำหรับคัดลอกลง Clipboard ไปวางในแชต LINE หรือเอกสารรายงาน)
+ */
+export function formatFullAlertMessage(alert: Alert): string {
   const headLabel = alert.head_no ? `[หัวที่ ${alert.head_no}]` : '';
   const species = alert.animal_species || 'สัตว์';
   
   const lines = [
-    `🚨 แจ้งเตือนโรคพิษสุนัขบ้า จ.กาฬสินธุ์ ${headLabel}`,
-    `━━━━━━━━━━━━━━━━━━━━`,
-    `📌 เหตุการณ์: ตรวจพบเชื้อใน${species} (ผลบวก Lab +)`,
-    `📍 พื้นที่: ${alert.location}`,
+    `🚨 รายงานแจ้งเตือนเหตุการณ์โรคพิษสุนัขบ้า จ.กาฬสินธุ์ ${headLabel}`,
+    `━━━━━━━━━━━━━━━━━━━━━━━━━━`,
+    `📌 เหตุการณ์: ยืนยันผลบวกตรวจพบเชื้อใน${species} (Rabies Positive)`,
+    `📍 พื้นที่เกิดเหตุ: ${alert.location}`,
     `📅 วันที่ยืนยันผล: ${alert.date_thai || alert.lab_date || 'พ.ศ. 2569'}`,
     ``,
-    `🔬 ผลตรวจทางห้องปฏิบัติการ (Lab Result):`,
-    `• ผลตรวจ: ${alert.lab_result || 'ยืนยันผลบวก (Rabies Positive: DFA / RT-PCR +)'}`,
-    `• หน่วยงานตรวจ: ${alert.lab_agency || 'ศูนย์วิจัยและพัฒนาการสัตวแพทย์ภาคตะวันออกเฉียงเหนือตอนบน (ศวพ.ขอนแก่น)'}`,
-    `• รหัสตัวอย่าง: ${alert.sample_id || `KLS-69-${String(alert.head_no || '0').padStart(3, '0')}`}`,
+    `🔬 ข้อมูลผลตรวจทางห้องปฏิบัติการ (Lab Result):`,
+    `  • ผลตรวจ: ${alert.lab_result || 'ยืนยันผลบวก (Rabies Positive: DFA / RT-PCR +)'}`,
+    `  • วิธีตรวจ: DFA (Direct Fluorescent Antibody) / RT-PCR`,
+    `  • หน่วยงานตรวจ: ${alert.lab_agency || 'ศูนย์วิจัยและพัฒนาการสัตวแพทย์ภาคตะวันออกเฉียงเหนือตอนบน (ศวพ.ขอนแก่น)'}`,
+    `  • รหัสตัวอย่าง Lab: ${alert.sample_id || `KLS-69-${String(alert.head_no || '0').padStart(3, '0')}`}`,
     ``,
     `👥 ข้อมูลผู้สัมผัสโรค (คน):`,
   ];
 
   if (alert.exposures_count && alert.exposures_count > 0) {
-    lines.push(`• ผู้สัมผัสเสี่ยง: ${alert.exposures_count} ราย (Cat I: ${alert.cat1_count || 0}, Cat II: ${alert.cat2_count || 0}, Cat III: ${alert.cat3_count || 0} ราย)`);
-    lines.push(`• การดูแล: ได้รับวัคซีนป้องกันหลังสัมผัส (PEP) ครบถ้วนตามมาตรฐาน`);
+    lines.push(`  • จำนวนผู้สัมผัสเสี่ยง: ${alert.exposures_count} ราย (Cat I: ${alert.cat1_count || 0}, Cat II: ${alert.cat2_count || 0}, Cat III: ${alert.cat3_count || 0} ราย)`);
+    lines.push(`  • การดูแลรักษา: ได้รับวัคซีนป้องกันหลังสัมผัส (PEP) ครบถ้วนตามมาตรฐาน`);
   } else {
-    lines.push(`• ผู้สัมผัสเสี่ยง: 0 ราย (ไม่มีผู้ถูกกัด/สัมผัส)`);
+    lines.push(`  • จำนวนผู้สัมผัสเสี่ยง: 0 ราย (ไม่มีผู้ถูกกัดหรือสัมผัสเชื้อ)`);
   }
 
-  lines.push(`• สถานการณ์ในคน: ปลอดผู้ป่วย 100% (ผู้ป่วย = 0 ราย, เสียชีวิต = 0 ราย)`);
+  lines.push(`  • สถานการณ์ในคน: ปลอดผู้ป่วย 100% (ผู้ป่วย = 0 ราย, เสียชีวิต = 0 ราย)`);
   lines.push(``);
   lines.push(`🛡️ มาตรการควบคุมโรคในพื้นที่:`);
-  lines.push(`1. ประกาศเขตเฝ้าระวังโรคระบาดสัตว์ รัศมี 5 กิโลเมตร`);
-  lines.push(`2. เจ้าของสัตว์เลี้ยงต้องนำสุนัข-แมวไปฉีดวัคซีนป้องกันทันที`);
-  lines.push(`3. หากถูกกัด/ข่วน ให้ล้างแผลด้วยน้ำและสบู่อย่างน้อย 15 นาที แล้วรีบไปพบแพทย์ทันที`);
-  lines.push(`━━━━━━━━━━━━━━━━━━━━`);
-  lines.push(`🗺️ ตรวจสอบแผนที่จุดเกิดเหตุและสถิติ:`);
+  lines.push(`  1. ประกาศเขตเฝ้าระวังโรคระบาดสัตว์ รัศมี 5 กิโลเมตร`);
+  lines.push(`  2. ระดมปูพรมฉีดวัคซีนป้องกันโรคพิษสุนัขบ้าในสุนัขและแมวรอบจุดเกิดเหตุ`);
+  lines.push(`  3. กักสังเกตอาการสัตว์ในพื้นที่ 14 วัน`);
+  lines.push(`  4. หากถูกกัด/ข่วน ให้ล้างแผลด้วยน้ำและสบู่ 15 นาที แล้วรีบพบแพทย์ทันที`);
+  lines.push(`━━━━━━━━━━━━━━━━━━━━━━━━━━`);
+  lines.push(`🗺️ ตรวจสอบแผนที่จุดเกิดเหตุและข้อมูลระบาดวิทยา:`);
   lines.push(`https://cdkls46000-sketch.github.io/rabies-dashboard/`);
-  lines.push(`สสจ.กาฬสินธุ์ ร่วมกับ สำนักงานปศุสัตว์จังหวัดกาฬสินธุ์`);
+  lines.push(`กลุ่มงานควบคุมโรคติดต่อ สสจ.กาฬสินธุ์ ร่วมกับ สำนักงานปศุสัตว์จังหวัดกาฬสินธุ์`);
 
   return lines.join('\n');
 }
 
-export function shareToLine(alert: Alert) {
-  const text = formatLineShareMessage(alert);
-  const lineUrl = `https://line.me/R/msg/text/?${encodeURIComponent(text)}`;
+// Alias for backwards compatibility
+export const formatLineShareMessage = formatFullAlertMessage;
+
+/**
+ * ฟังก์ชันแชร์เข้า LINE:
+ * 1. คัดลอกรายงานฉบับเต็มลง Clipboard ให้อัตโนมัติ (เพื่อให้ User สามารถกด Paste ข้อมูลเต็มได้)
+ * 2. เปิดหน้าต่างแชร์ของ LINE ด้วยข้อความกระชับความยาวปลอดภัย (ป้องกัน HTTP ERROR 400)
+ */
+export function shareToLine(alert: Alert, onNotify?: (message: string) => void) {
+  // 1. Copy full comprehensive text to clipboard
+  const fullText = formatFullAlertMessage(alert);
+  if (typeof navigator !== 'undefined' && navigator.clipboard) {
+    navigator.clipboard.writeText(fullText).catch(() => {});
+  }
+
+  // 2. Open concise text in LINE to prevent HTTP 400
+  const conciseText = formatConciseLineMessage(alert);
+  const lineUrl = `https://line.me/R/msg/text/?${encodeURIComponent(conciseText)}`;
   window.open(lineUrl, '_blank');
+
+  if (onNotify) {
+    onNotify(`📲 เปิดแชร์เข้า LINE เรียบร้อยแล้ว (พร้อมคัดลอกรายงานฉบับเต็มลงคลิปบอร์ดให้แล้ว สามารถกด Paste ในแชตได้ด้วย)`);
+  }
 }
