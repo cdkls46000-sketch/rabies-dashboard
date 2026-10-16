@@ -131,6 +131,22 @@ export interface Alert {
   created_at: string;
   is_read: boolean;
   case_id?: number;
+  head_no?: number;
+  date_thai?: string;
+  animal_species?: string;
+  lab_result?: string;
+  lab_agency?: string;
+  sample_id?: string;
+  lab_date?: string;
+  exposures_count?: number;
+  cat1_count?: number;
+  cat2_count?: number;
+  cat3_count?: number;
+  is_recent_1_month?: boolean;
+  district?: string;
+  subdistrict?: string;
+  village_name?: string;
+  year?: FiscalYear;
 }
 
 // ===== Dashboard Summary Types =====
