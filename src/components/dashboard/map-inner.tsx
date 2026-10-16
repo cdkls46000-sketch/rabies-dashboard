@@ -51,8 +51,7 @@ export default function MapInner() {
   }, []);
 
   // Filter map points by selected fiscal year
-  const activePoints = mapPoints.filter(p => !p.year || p.year === selectedYear);
-  const displayPoints = activePoints.length > 0 ? activePoints : mapPoints;
+  const displayPoints = mapPoints.filter(p => p.year === selectedYear || (!p.year && selectedYear === '2569'));
 
   return (
     <MapContainer 

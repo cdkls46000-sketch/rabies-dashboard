@@ -129,17 +129,21 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   // Initialize from localStorage if available
   useEffect(() => {
     try {
+      // Clear out legacy test and dirty caches
       localStorage.removeItem('rabies_kalasin_patients');
       localStorage.removeItem('rabies_kalasin_mappoints');
       localStorage.removeItem('rabies_kalasin_alerts');
+      localStorage.removeItem('rabies_kalasin_v269_patients');
+      localStorage.removeItem('rabies_kalasin_v269_mappoints');
+      localStorage.removeItem('rabies_kalasin_v269_alerts');
 
-      const savedPatients = localStorage.getItem('rabies_kalasin_v269_patients');
+      const savedPatients = localStorage.getItem('rabies_kalasin_clean133_patients');
       if (savedPatients) setPatients(JSON.parse(savedPatients));
 
-      const savedMapPoints = localStorage.getItem('rabies_kalasin_v269_mappoints');
+      const savedMapPoints = localStorage.getItem('rabies_kalasin_clean133_mappoints');
       if (savedMapPoints) setMapPoints(JSON.parse(savedMapPoints));
 
-      const savedAlerts = localStorage.getItem('rabies_kalasin_v269_alerts');
+      const savedAlerts = localStorage.getItem('rabies_kalasin_clean133_alerts');
       if (savedAlerts) setAlerts(JSON.parse(savedAlerts));
 
       const savedUser = localStorage.getItem('rabies_auth_user');
@@ -164,19 +168,19 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   // Save to localStorage when patients change
   useEffect(() => {
     try {
-      localStorage.setItem('rabies_kalasin_v269_patients', JSON.stringify(patients));
+      localStorage.setItem('rabies_kalasin_clean133_patients', JSON.stringify(patients));
     } catch {}
   }, [patients]);
 
   useEffect(() => {
     try {
-      localStorage.setItem('rabies_kalasin_v269_mappoints', JSON.stringify(mapPoints));
+      localStorage.setItem('rabies_kalasin_clean133_mappoints', JSON.stringify(mapPoints));
     } catch {}
   }, [mapPoints]);
 
   useEffect(() => {
     try {
-      localStorage.setItem('rabies_kalasin_v269_alerts', JSON.stringify(alerts));
+      localStorage.setItem('rabies_kalasin_clean133_alerts', JSON.stringify(alerts));
     } catch {}
   }, [alerts]);
 
@@ -317,10 +321,12 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   const dashboardSummary = yearlySummaries[selectedYear] || yearlySummaries['2569'];
   const trendData = yearlyTrends[selectedYear] || yearlyTrends['2569'];
 
+  const currentYearPatients = patients.filter(p => p.year === selectedYear || (!p.year && selectedYear === '2569'));
+
   const categoryCount: CategoryCount = {
-    catI: patients.filter(p => p.wound_category === 'I').length || 15,
-    catII: patients.filter(p => p.wound_category === 'II').length || 68,
-    catIII: patients.filter(p => p.wound_category === 'III').length || 50,
+    catI: currentYearPatients.filter(p => p.wound_category === 'I').length,
+    catII: currentYearPatients.filter(p => p.wound_category === 'II').length,
+    catIII: currentYearPatients.filter(p => p.wound_category === 'III').length,
     deaths: 0,
   };
 

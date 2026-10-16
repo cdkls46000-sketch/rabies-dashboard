@@ -19,7 +19,7 @@ import {
   Lock,
   LogIn
 } from 'lucide-react';
-import { vaccineCoverageData, kalasinDistricts } from '@/lib/mock-data';
+import { vaccineCoverageData, yearlyVaccineCoverageData, kalasinDistricts } from '@/lib/mock-data';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
@@ -54,7 +54,11 @@ export default function PatientsPage() {
 
   const [search, setSearch] = useState('');
   const [districtFilter, setDistrictFilter] = useState('all');
-  const [yearFilter, setYearFilter] = useState<string>('all');
+  const [yearFilter, setYearFilter] = useState<string>(selectedYear);
+
+  React.useEffect(() => {
+    setYearFilter(selectedYear);
+  }, [selectedYear]);
 
   // Filter patients based on search, district, and fiscal year
   const filteredPatients = patients.filter(p => {
@@ -70,9 +74,9 @@ export default function PatientsPage() {
       (p.district && p.district.includes(districtFilter));
 
     const matchesYear =
-      yearFilter === 'all' ||
-      p.year === yearFilter ||
-      (!p.year && yearFilter === selectedYear);
+      yearFilter === 'all'
+        ? (p.year === selectedYear || (!p.year && selectedYear === '2569'))
+        : (p.year === yearFilter || (!p.year && yearFilter === '2569'));
 
     return matchesSearch && matchesDistrict && matchesYear;
   });
@@ -505,7 +509,13 @@ export default function PatientsPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="p-3.5 sm:p-5 pt-0 sm:pt-0">
-            <VaccineCoverageChart data={vaccineCoverageData} />
+            {yearlyVaccineCoverageData[selectedYear] && yearlyVaccineCoverageData[selectedYear].length > 0 ? (
+              <VaccineCoverageChart data={yearlyVaccineCoverageData[selectedYear]} />
+            ) : (
+              <div className="h-[260px] flex items-center justify-center text-xs text-muted-foreground bg-slate-50 rounded-lg border border-dashed border-slate-200">
+                ไม่มีข้อมูลรายงานในปี พ.ศ. {selectedYear}
+              </div>
+            )}
             <div className="mt-4 p-3 bg-blue-50 rounded-lg text-xs text-blue-800 border border-blue-100 space-y-1">
               <div className="font-semibold flex items-center gap-1.5">
                 💡 ระบบติดตามอัตโนมัติ (Active Surveillance)

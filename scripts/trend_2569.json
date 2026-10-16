@@ -1,0 +1,74 @@
+[
+  {
+    "month": "ม.ค.",
+    "cases": 0,
+    "exposures": 0,
+    "positiveAnimals": 0
+  },
+  {
+    "month": "ก.พ.",
+    "cases": 10,
+    "exposures": 6,
+    "positiveAnimals": 4
+  },
+  {
+    "month": "มี.ค.",
+    "cases": 62,
+    "exposures": 55,
+    "positiveAnimals": 7
+  },
+  {
+    "month": "เม.ย.",
+    "cases": 14,
+    "exposures": 11,
+    "positiveAnimals": 3
+  },
+  {
+    "month": "พ.ค.",
+    "cases": 33,
+    "exposures": 27,
+    "positiveAnimals": 6
+  },
+  {
+    "month": "มิ.ย.",
+    "cases": 12,
+    "exposures": 9,
+    "positiveAnimals": 3
+  },
+  {
+    "month": "ก.ค.",
+    "cases": 9,
+    "exposures": 6,
+    "positiveAnimals": 3
+  },
+  {
+    "month": "ส.ค.",
+    "cases": 6,
+    "exposures": 2,
+    "positiveAnimals": 4
+  },
+  {
+    "month": "ก.ย.",
+    "cases": 12,
+    "exposures": 11,
+    "positiveAnimals": 1
+  },
+  {
+    "month": "ต.ค.",
+    "cases": 7,
+    "exposures": 6,
+    "positiveAnimals": 1
+  },
+  {
+    "month": "พ.ย.",
+    "cases": 0,
+    "exposures": 0,
+    "positiveAnimals": 0
+  },
+  {
+    "month": "ธ.ค.",
+    "cases": 0,
+    "exposures": 0,
+    "positiveAnimals": 0
+  }
+]

@@ -3,12 +3,22 @@
 import React from 'react';
 import KpiCard from '@/components/dashboard/kpi-card';
 import { PawPrint, AlertTriangle, Clock, Syringe, MapPin } from 'lucide-react';
-import { animalSummary, labSummary, districtVaccinationData } from '@/lib/mock-data';
+import { 
+  yearlyAnimalSummaries, 
+  yearlyLabSummaries, 
+  yearlyDistrictVaccinationData 
+} from '@/lib/mock-data';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { LabResultsChart } from '@/components/animals/lab-results-chart';
 import { DistrictVaccinationTable } from '@/components/animals/district-vaccination-table';
+import { useData } from '@/context/data-context';
 
 export default function AnimalsPage() {
+  const { selectedYear } = useData();
+  const animalSummary = yearlyAnimalSummaries[selectedYear] || yearlyAnimalSummaries['2569'];
+  const labSummary = yearlyLabSummaries[selectedYear] || yearlyLabSummaries['2569'];
+  const districtData = yearlyDistrictVaccinationData[selectedYear] || [];
+
   return (
     <div className="space-y-4 sm:space-y-6">
       {/* Header */}
@@ -21,7 +31,7 @@ export default function AnimalsPage() {
             </span>
           </h1>
           <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
-            ข้อมูลตรวจชันสูตรทางห้องปฏิบัติการ และความครอบคลุมการสร้างเสริมภูมิคุ้มกันโรคในสุนัข-แมว โดยปศุสัตว์จังหวัดกาฬสินธุ์
+            ข้อมูลตรวจชันสูตรทางห้องปฏิบัติการ และความครอบคลุมการสร้างเสริมภูมิคุ้มกันโรคในสุนัข-แมว ปี พ.ศ. {selectedYear}
           </p>
         </div>
       </div>
@@ -68,10 +78,18 @@ export default function AnimalsPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="p-3.5 sm:p-5 pt-0 sm:pt-0">
-            <LabResultsChart data={labSummary} />
-            <div className="mt-4 p-3 bg-slate-50 rounded-lg text-xs text-slate-600 border border-slate-200">
-              📌 ผลบวกทั้งหมดพบใน สุนัขจรจัด 15 ตัว, สุนัขมีเจ้าของ 2 ตัว และโค 1 ตัว
-            </div>
+            {labSummary.positive === 0 && labSummary.negative === 0 ? (
+              <div className="h-[260px] flex items-center justify-center text-xs text-muted-foreground bg-slate-50 rounded-lg border border-dashed border-slate-200">
+                ไม่มีข้อมูลรายงานผลตรวจในปี พ.ศ. {selectedYear}
+              </div>
+            ) : (
+              <>
+                <LabResultsChart data={labSummary} />
+                <div className="mt-4 p-3 bg-slate-50 rounded-lg text-xs text-slate-600 border border-slate-200">
+                  📌 ผลบวกทั้งหมดพบใน สุนัข 31 ตัว (สุนัขจรจัด 29 ตัว, สุนัขมีเจ้าของ 2 ตัว) และโค 1 ตัว
+                </div>
+              </>
+            )}
           </CardContent>
         </Card>
         
@@ -83,7 +101,13 @@ export default function AnimalsPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="p-3.5 sm:p-5 pt-0 sm:pt-0">
-            <DistrictVaccinationTable data={districtVaccinationData} />
+            {districtData.length === 0 ? (
+              <div className="h-[260px] flex items-center justify-center text-xs text-muted-foreground bg-slate-50 rounded-lg border border-dashed border-slate-200">
+                ไม่มีข้อมูลรายงานในปี พ.ศ. {selectedYear}
+              </div>
+            ) : (
+              <DistrictVaccinationTable data={districtData} />
+            )}
           </CardContent>
         </Card>
       </div>
