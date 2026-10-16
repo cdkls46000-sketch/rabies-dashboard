@@ -188,51 +188,155 @@ export default function PatientsPage() {
         </div>
       </div>
       
-      {/* KPI Cards: ผู้สัมผัสทั้งหมด, Cat I, Cat II, Cat III, RIG Coverage in Cat III, ผู้ป่วย/เสียชีวิต = 0 */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 sm:gap-3.5">
-        <KpiCard 
-          title="ผู้สัมผัสทั้งหมด" 
-          value={`${categoryCount.catI + categoryCount.catII + categoryCount.catIII} ราย`} 
-          change={0} 
-          icon={Users} 
-          colorClass="text-blue-600" 
-        />
-        <KpiCard 
-          title="Category I (สัมผัส/เลียผิวปกติ)" 
-          value={`${categoryCount.catI} ราย`} 
-          change={0} 
-          icon={Activity} 
-          colorClass="text-blue-500" 
-        />
-        <KpiCard 
-          title="Category II (แผลข่วน/ถลอก)" 
-          value={`${categoryCount.catII} ราย`} 
-          change={-2} 
-          icon={AlertTriangle} 
-          colorClass="text-amber-500" 
-        />
-        <KpiCard 
-          title="Category III (แผลลึก/มีเลือด)" 
-          value={`${categoryCount.catIII} ราย`} 
-          change={1} 
-          icon={AlertCircle} 
-          colorClass="text-red-500" 
-        />
-        <KpiCard 
-          title="ความครอบคลุม RIG ใน Cat III" 
-          value="93.8%" 
-          change={100} 
-          icon={Syringe} 
-          colorClass="text-purple-600" 
-        />
-        <KpiCard 
-          title="ผู้ป่วย / เสียชีวิตจากโรค" 
-          value="0 ราย" 
-          change={0} 
-          icon={ShieldCheck} 
-          colorClass="text-emerald-600" 
-        />
-      </div>
+      {/* 6 KPI Cards with Perfect Horizontal Baseline Alignment & Vibrant Medical Styling */}
+      {(() => {
+        const totalExposures = categoryCount.catI + categoryCount.catII + categoryCount.catIII;
+        const exposureMetrics = [
+          {
+            id: 'total',
+            title: 'ผู้สัมผัสโรคทั้งหมด',
+            subtitle: `One Health จ.กาฬสินธุ์`,
+            value: totalExposures,
+            unit: 'ราย',
+            badge: '👥 ผู้สัมผัสสะสม',
+            icon: Users,
+            border: 'border-blue-200/90',
+            bgGradient: 'bg-gradient-to-br from-blue-50/80 via-white to-blue-50/30',
+            accentBar: 'bg-blue-600',
+            iconBg: 'bg-blue-100 text-blue-700',
+            valueColor: 'text-blue-950',
+            badgeClass: 'bg-blue-100/80 text-blue-800 border border-blue-200',
+          },
+          {
+            id: 'cat1',
+            title: 'Category I',
+            subtitle: 'สัมผัส/เลียผิวหนังปกติ',
+            value: categoryCount.catI,
+            unit: 'ราย',
+            badge: 'ล้างแผลอย่างเดียว',
+            icon: Activity,
+            border: 'border-sky-200/90',
+            bgGradient: 'bg-gradient-to-br from-sky-50/80 via-white to-sky-50/30',
+            accentBar: 'bg-sky-500',
+            iconBg: 'bg-sky-100 text-sky-700',
+            valueColor: 'text-sky-950',
+            badgeClass: 'bg-sky-100/80 text-sky-800 border border-sky-200',
+          },
+          {
+            id: 'cat2',
+            title: 'Category II',
+            subtitle: 'แผลถลอก/ข่วน ไม่มีเลือด',
+            value: categoryCount.catII,
+            unit: 'ราย',
+            badge: 'ฉีดวัคซีน PEP',
+            icon: AlertTriangle,
+            border: 'border-amber-200/90',
+            bgGradient: 'bg-gradient-to-br from-amber-50/80 via-white to-amber-50/30',
+            accentBar: 'bg-amber-500',
+            iconBg: 'bg-amber-100 text-amber-700',
+            valueColor: 'text-amber-950',
+            badgeClass: 'bg-amber-100/80 text-amber-800 border border-amber-200',
+          },
+          {
+            id: 'cat3',
+            title: 'Category III',
+            subtitle: 'แผลลึก เลือดออก เยื่อบุ',
+            value: categoryCount.catIII,
+            unit: 'ราย',
+            badge: '⚠️ ต้องให้ RIG รอบแผล',
+            icon: AlertCircle,
+            border: 'border-rose-300',
+            bgGradient: 'bg-gradient-to-br from-rose-50/90 via-white to-rose-50/30 ring-1 ring-rose-200/60',
+            accentBar: 'bg-rose-600',
+            iconBg: 'bg-rose-100 text-rose-700',
+            valueColor: 'text-rose-950',
+            badgeClass: 'bg-rose-100 text-rose-800 font-bold border border-rose-300',
+          },
+          {
+            id: 'rig',
+            title: 'ความครอบคลุม RIG',
+            subtitle: 'ในกลุ่ม Category III',
+            value: '93.8',
+            unit: '%',
+            badge: '✓ 30 จาก 32 ราย',
+            icon: Syringe,
+            border: 'border-purple-200/90',
+            bgGradient: 'bg-gradient-to-br from-purple-50/80 via-white to-purple-50/30',
+            accentBar: 'bg-purple-600',
+            iconBg: 'bg-purple-100 text-purple-700',
+            valueColor: 'text-purple-950',
+            badgeClass: 'bg-purple-100/80 text-purple-800 font-bold border border-purple-200',
+          },
+          {
+            id: 'deaths',
+            title: 'ผู้ป่วย / เสียชีวิต',
+            subtitle: 'โรคพิษสุนัขบ้าในคน',
+            value: '0',
+            unit: 'ราย',
+            badge: '✓ ปลอดโรค (เป็นศูนย์)',
+            icon: ShieldCheck,
+            border: 'border-emerald-200/90',
+            bgGradient: 'bg-gradient-to-br from-emerald-50/80 via-white to-emerald-50/30',
+            accentBar: 'bg-emerald-600',
+            iconBg: 'bg-emerald-100 text-emerald-700',
+            valueColor: 'text-emerald-950',
+            badgeClass: 'bg-emerald-100/80 text-emerald-800 font-bold border border-emerald-200',
+          },
+        ];
+
+        return (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 sm:gap-3.5">
+            {exposureMetrics.map((item) => {
+              const Icon = item.icon;
+              return (
+                <div
+                  key={item.id}
+                  className={`relative overflow-hidden rounded-2xl border ${item.border} ${item.bgGradient} shadow-2xs hover:shadow-md transition-all p-3 sm:p-3.5 flex flex-col justify-between`}
+                >
+                  {/* Left Color Accent Bar */}
+                  <div className={`absolute top-0 left-0 w-1.5 h-full ${item.accentBar}`} />
+
+                  {/* Header with Fixed Height for 100% Horizontal Alignment */}
+                  <div className="flex items-start justify-between gap-1 min-h-[44px]">
+                    <div className="min-w-0 pr-1 pl-1">
+                      <div className="text-xs sm:text-[13px] font-bold text-slate-900 tracking-tight leading-snug">
+                        {item.title}
+                      </div>
+                      <div className="text-[10px] text-slate-500 font-medium leading-tight mt-0.5 truncate">
+                        {item.subtitle}
+                      </div>
+                    </div>
+                    <div className={`p-1.5 rounded-xl shrink-0 ${item.iconBg}`}>
+                      <Icon size={15} />
+                    </div>
+                  </div>
+
+                  {/* Value and Unit Baseline Container: Exactly Aligned Across All Cards */}
+                  <div className="mt-2 pt-2 border-t border-slate-200/60 pl-1">
+                    <div className="flex items-baseline gap-1">
+                      <span className={`text-2xl sm:text-[28px] font-black tracking-tight leading-none ${item.valueColor}`}>
+                        {item.value}
+                      </span>
+                      {item.unit && (
+                        <span className="text-xs font-semibold text-slate-500">
+                          {item.unit}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Status Badge */}
+                    <div className="mt-2 flex items-center">
+                      <span className={`text-[10px] px-2 py-0.5 rounded-md font-semibold truncate ${item.badgeClass}`}>
+                        {item.badge}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        );
+      })()}
 
       {/* แถบสรุป One Health Linkage & คลังสำรองชีววัตถุ */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
