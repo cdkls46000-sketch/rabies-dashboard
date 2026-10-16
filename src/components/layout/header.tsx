@@ -66,18 +66,18 @@ export function Header() {
   return (
     <header className="bg-white border-b border-gray-200 h-14 sm:h-16 flex items-center justify-between px-2.5 sm:px-4 md:px-6 sticky top-0 z-30">
       {/* Left section: Hamburger button (mobile) + Page Title */}
-      <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+      <div className="flex items-center gap-1.5 sm:gap-3 min-w-0 flex-1 mr-1">
         <button
           type="button"
           onClick={toggleMobileSidebar}
-          className="md:hidden p-1.5 -ml-1 text-slate-700 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors active:scale-95"
+          className="md:hidden p-1.5 -ml-1 text-slate-700 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors active:scale-95 shrink-0"
           aria-label="เปิดเมนูนำทาง"
         >
           <Menu size={22} />
         </button>
 
         <div className="flex items-center gap-1.5 min-w-0">
-          <h1 className="text-sm sm:text-base md:text-lg font-bold text-gray-800 truncate">
+          <h1 className="text-xs sm:text-base md:text-lg font-bold text-gray-800 truncate">
             {title}
           </h1>
           <span className="hidden xl:inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 bg-blue-100 text-blue-800 rounded-full shrink-0">
@@ -87,16 +87,16 @@ export function Header() {
       </div>
 
       {/* Right controls: Fiscal Year, PDPA, New Case button, Notifications, User */}
-      <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
+      <div className="flex items-center gap-1 sm:gap-2 shrink-0">
         {/* Fiscal Year Selector (ข้อ 4: พ.ศ. 2568-2571) */}
-        <div className="flex items-center gap-1 bg-slate-100/90 hover:bg-slate-100 p-1 rounded-md border border-slate-200">
-          <Calendar className="w-3.5 h-3.5 text-blue-600 ml-0.5 shrink-0" />
+        <div className="flex items-center gap-0.5 sm:gap-1 bg-slate-100/90 hover:bg-slate-100 p-0.5 sm:p-1 rounded-md border border-slate-200">
+          <Calendar className="w-3.5 h-3.5 text-blue-600 ml-0.5 shrink-0 hidden xs:inline" />
           <span className="text-[11px] font-semibold text-slate-600 hidden md:inline">ปี พ.ศ.</span>
           <Select 
             value={selectedYear} 
             onValueChange={(val) => { if (val) setSelectedYear(val as FiscalYear); }}
           >
-            <SelectTrigger className="h-6 sm:h-7 w-[78px] sm:w-[105px] text-xs font-bold bg-white text-blue-700 border-slate-200 shadow-none px-1.5">
+            <SelectTrigger className="h-6 sm:h-7 w-[68px] sm:w-[105px] text-[11px] sm:text-xs font-bold bg-white text-blue-700 border-slate-200 shadow-none px-1 sm:px-1.5">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -113,7 +113,7 @@ export function Header() {
           <button
             onClick={togglePdpa}
             type="button"
-            className={`flex items-center gap-1 px-2 py-1 sm:py-1.5 rounded-md text-xs font-medium border transition-all cursor-pointer active:scale-95 ${
+            className={`flex items-center gap-1 px-1.5 sm:px-2 py-1 sm:py-1.5 rounded-md text-xs font-medium border transition-all cursor-pointer active:scale-95 ${
               isPdpaActive 
                 ? 'bg-emerald-50 text-emerald-800 border-emerald-300 hover:bg-emerald-100' 
                 : 'bg-amber-50 text-amber-800 border-amber-300 hover:bg-amber-100'
@@ -138,12 +138,11 @@ export function Header() {
           <button
             onClick={togglePdpa}
             type="button"
-            className="flex items-center gap-1 px-2 py-1 sm:py-1.5 rounded-md text-xs font-medium border bg-slate-100 text-slate-700 border-slate-300 hover:bg-slate-200 transition-all cursor-pointer active:scale-95"
+            className="hidden sm:flex items-center gap-1 px-2 py-1 sm:py-1.5 rounded-md text-xs font-medium border bg-slate-100 text-slate-700 border-slate-300 hover:bg-slate-200 transition-all cursor-pointer active:scale-95"
             title="พ.ร.บ. คุ้มครองข้อมูลส่วนบุคคล (PDPA): คลิกเพื่อเข้าสู่ระบบเจ้าหน้าที่เพื่อดูชื่อเต็ม"
           >
             <Lock size={13} className="text-slate-500 shrink-0" />
             <span className="hidden sm:inline">PDPA (ล็อก)</span>
-            <span className="sm:hidden text-[10px] font-bold">PDPA</span>
           </button>
         )}
 

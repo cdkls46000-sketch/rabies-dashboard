@@ -290,13 +290,13 @@ export default function AlertsPage() {
                         </div>
                       </div>
 
-                      {/* Action buttons: LINE Share & Copy Text */}
-                      <div className="flex flex-row lg:flex-col items-center lg:items-stretch gap-2 shrink-0 pt-2 lg:pt-0 border-t lg:border-t-0 border-slate-200/60">
+                      {/* Action buttons: LINE Share, Copy Text, Lab PDF */}
+                      <div className="grid grid-cols-2 sm:grid-cols-3 lg:flex lg:flex-col gap-2 shrink-0 pt-2.5 lg:pt-0 border-t lg:border-t-0 border-slate-200/60 w-full lg:w-auto">
                         <Button
                           type="button"
                           size="sm"
                           onClick={() => setShareAlert(alert)}
-                          className="bg-[#06C755] hover:bg-[#05b34c] text-white text-xs font-semibold h-8 px-3 gap-1.5 shadow-xs cursor-pointer active:scale-95 flex-1 lg:flex-initial"
+                          className="bg-[#06C755] hover:bg-[#05b34c] text-white text-xs font-semibold h-8 px-2.5 gap-1.5 shadow-xs cursor-pointer active:scale-95 w-full"
                           title="แชร์ข้อมูลเหตุการณ์และผล Lab เข้ากลุ่ม LINE"
                         >
                           <Share2 size={13} />
@@ -308,7 +308,7 @@ export default function AlertsPage() {
                           variant="outline"
                           size="sm"
                           onClick={() => handleCopyAlert(alert)}
-                          className="h-8 px-3 text-xs font-medium border-slate-300 text-slate-700 hover:bg-slate-100 gap-1.5 flex-1 lg:flex-initial"
+                          className="h-8 px-2.5 text-xs font-medium border-slate-300 text-slate-700 hover:bg-slate-100 gap-1.5 w-full cursor-pointer active:scale-95"
                           title="คัดลอกข้อความสรุปพร้อมแชร์"
                         >
                           {copiedId === alert.alert_id ? (
@@ -329,10 +329,10 @@ export default function AlertsPage() {
                           variant="outline"
                           size="sm"
                           onClick={() => setSelectedLabAlert(alert)}
-                          className="h-8 px-3 text-xs font-semibold border-red-200 text-red-700 bg-red-50/50 hover:bg-red-100 hover:text-red-800 hover:border-red-300 gap-1.5 flex-1 lg:flex-initial cursor-pointer active:scale-95 shadow-2xs"
+                          className="col-span-2 sm:col-span-1 h-8 px-3 text-xs font-semibold border-red-200 text-red-700 bg-red-50/50 hover:bg-red-100 hover:text-red-800 hover:border-red-300 gap-1.5 w-full cursor-pointer active:scale-95 shadow-2xs"
                           title="เปิดดูใบรายงานผลทางห้องปฏิบัติการ (PDF)"
                         >
-                          <FileText size={13} className="text-red-600" />
+                          <FileText size={13} className="text-red-600 shrink-0" />
                           <span>ผลทางห้องปฏิบัติการ (PDF)</span>
                         </Button>
                       </div>

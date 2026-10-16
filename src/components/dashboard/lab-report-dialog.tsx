@@ -152,16 +152,17 @@ export function LabReportDialog({ alert, isOpen, onClose, onNotify }: LabReportD
           </div>
 
           {/* Action Toolbar */}
-          <div className="flex flex-wrap items-center justify-between gap-2 bg-white p-2 rounded-lg border border-slate-200 shadow-2xs">
-            <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 bg-white p-2 rounded-lg border border-slate-200 shadow-2xs">
+            <div className="grid grid-cols-2 sm:flex sm:items-center gap-2 w-full">
               <Button
                 type="button"
                 size="sm"
                 onClick={handleOpenPdf}
-                className="bg-red-600 hover:bg-red-700 text-white text-xs h-8 px-3 gap-1.5 shadow-xs font-semibold cursor-pointer active:scale-95"
+                className="bg-red-600 hover:bg-red-700 text-white text-xs h-8 px-2.5 sm:px-3 gap-1.5 shadow-xs font-semibold cursor-pointer active:scale-95 col-span-2 sm:col-span-1"
               >
                 <Download size={13} />
-                <span>เปิดดู / ดาวน์โหลดไฟล์ PDF ต้นฉบับ</span>
+                <span className="sm:hidden">เปิดดู / โหลด PDF ตัวจริง</span>
+                <span className="hidden sm:inline">เปิดดู / ดาวน์โหลดไฟล์ PDF ต้นฉบับ</span>
               </Button>
 
               <Button
@@ -169,32 +170,32 @@ export function LabReportDialog({ alert, isOpen, onClose, onNotify }: LabReportD
                 variant="outline"
                 size="sm"
                 onClick={handlePrint}
-                className="h-8 px-3 text-xs text-slate-700 border-slate-300 hover:bg-slate-50 gap-1.5 cursor-pointer font-medium"
+                className="h-8 px-2.5 sm:px-3 text-xs text-slate-700 border-slate-300 hover:bg-slate-50 gap-1.5 cursor-pointer font-medium"
               >
                 <Printer size={13} />
-                <span>สั่งพิมพ์ (Print)</span>
+                <span>สั่งพิมพ์</span>
+              </Button>
+
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleCopyDetails}
+                className="h-8 px-2.5 text-xs text-blue-700 border-blue-200 hover:bg-blue-50 gap-1.5 cursor-pointer font-medium"
+              >
+                {copied ? (
+                  <>
+                    <Check size={13} className="text-emerald-600" />
+                    <span className="text-emerald-700">คัดลอกแล้ว</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy size={13} />
+                    <span>คัดลอกสรุป</span>
+                  </>
+                )}
               </Button>
             </div>
-
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={handleCopyDetails}
-              className="h-8 px-2.5 text-xs text-blue-700 hover:bg-blue-50 gap-1.5 cursor-pointer font-medium"
-            >
-              {copied ? (
-                <>
-                  <Check size={13} className="text-emerald-600" />
-                  <span className="text-emerald-700">คัดลอกรายละเอียดแล้ว</span>
-                </>
-              ) : (
-                <>
-                  <Copy size={13} />
-                  <span>คัดลอกรายละเอียดผล</span>
-                </>
-              )}
-            </Button>
           </div>
 
           {/* Embedded PDF Viewer */}

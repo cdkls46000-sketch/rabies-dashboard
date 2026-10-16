@@ -185,9 +185,106 @@ export function PositiveAnimalTable({ alerts, onOpenPdf, onShareLine }: Positive
         </div>
       </CardHeader>
 
-      <CardContent className="p-3.5 sm:p-5 pt-0 sm:pt-0">
-        {/* Desktop Table View */}
-        <div className="overflow-x-auto rounded-xl border border-slate-200">
+      <CardContent className="p-3.5 sm:p-5 pt-0 sm:pt-0 space-y-3">
+        {/* 1. Mobile Card View (< md) */}
+        <div className="md:hidden space-y-2.5">
+          {filteredAlerts.length === 0 ? (
+            <div className="text-center py-8 text-xs text-muted-foreground bg-slate-50 rounded-lg border border-dashed border-slate-200">
+              ไม่พบรายการสัตว์ตรวจพบเชื้อตามเงื่อนไขที่ค้นหา
+            </div>
+          ) : (
+            filteredAlerts.map((a) => {
+              const isRecent = a.is_recent_1_month;
+              const isCow = a.animal_species === 'โค';
+              const ownership = isCow ? 'สัตว์เกษตรกร' : (a.head_no === 4 || a.head_no === 8 ? 'มีเจ้าของ' : 'สุนัขจรจัด');
+
+              return (
+                <div
+                  key={`m-head-${a.alert_id}`}
+                  className={`p-3 rounded-xl border transition-all space-y-2 ${
+                    isRecent
+                      ? 'bg-red-50/70 border-red-300 ring-1 ring-red-400/40 shadow-xs'
+                      : 'bg-white border-slate-200 shadow-2xs'
+                  }`}
+                >
+                  <div className="flex items-center justify-between gap-1.5 text-xs">
+                    <div className="flex items-center gap-1.5">
+                      <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold ${
+                        isRecent ? 'bg-red-600 text-white' : 'bg-slate-800 text-white'
+                      }`}>
+                        {a.head_no || a.alert_id}
+                      </span>
+                      <span className="font-bold text-slate-900">หัวที่ {a.head_no || a.alert_id}</span>
+                      {isRecent && (
+                        <Badge className="bg-red-600 text-white text-[10px] flex items-center gap-0.5 px-1.5 py-0 font-bold">
+                          <Flame size={10} /> ใน 30 วัน
+                        </Badge>
+                      )}
+                    </div>
+                    <span className="text-[11px] text-slate-500 flex items-center gap-1">
+                      <Calendar size={11} /> {a.date_thai || a.lab_date || '2569'}
+                    </span>
+                  </div>
+
+                  <div className="space-y-1 text-xs">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      {isCow ? (
+                        <Badge className="bg-purple-100 text-purple-800 border-purple-200 text-[10px]">
+                          🐄 โค (วัว)
+                        </Badge>
+                      ) : (
+                        <Badge variant="secondary" className="text-[10px]">
+                          🐕 สุนัข
+                        </Badge>
+                      )}
+                      <span className="text-slate-600 text-[11px] font-medium">{ownership}</span>
+                      <span className="text-slate-400">|</span>
+                      <span className="font-mono text-[10px] text-slate-500 bg-slate-100 px-1 py-0.5 rounded">
+                        {a.sample_id || `KLS-69-${String(a.head_no || '0').padStart(3, '0')}`}
+                      </span>
+                    </div>
+
+                    <div className="flex items-start gap-1 text-slate-800 text-[11px] font-medium">
+                      <MapPin size={12} className="text-red-500 shrink-0 mt-0.5" />
+                      <span>{a.location}</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between text-[11px] pt-1 border-t border-slate-100 text-slate-600">
+                    <span>ผู้สัมผัสโรค: <strong className="text-slate-800">{a.exposures_count ? `${a.exposures_count} ราย` : '0 ราย'}</strong></span>
+                    <span className="text-emerald-700 font-medium">ปลอดผู้ป่วย</span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 pt-1 border-t border-slate-100">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => onOpenPdf(a)}
+                      className="h-8 text-xs font-semibold border-red-200 text-red-700 bg-red-50/50 hover:bg-red-100 gap-1 w-full"
+                    >
+                      <FileText size={12} className="text-red-600 shrink-0" />
+                      <span>ผล Lab (PDF)</span>
+                    </Button>
+
+                    <Button
+                      type="button"
+                      size="sm"
+                      onClick={() => onShareLine(a)}
+                      className="h-8 text-xs font-semibold bg-[#06C755] hover:bg-[#05b34c] text-white gap-1 w-full"
+                    >
+                      <Share2 size={12} />
+                      <span>แชร์ LINE</span>
+                    </Button>
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+
+        {/* 2. Desktop Table View */}
+        <div className="hidden md:block overflow-x-auto rounded-xl border border-slate-200">
           <Table>
             <TableHeader className="bg-slate-50/80">
               <TableRow className="text-[11px]">

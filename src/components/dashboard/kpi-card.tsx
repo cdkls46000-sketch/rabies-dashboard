@@ -40,14 +40,14 @@ export function KPICard({
   return (
     <Card className="relative overflow-hidden shadow-sm hover:shadow-md transition-shadow">
       <div className={`absolute top-0 left-0 w-1.5 h-full ${barColor}`} />
-      <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-        <CardTitle className="text-sm font-medium text-muted-foreground">{title}</CardTitle>
-        <div className={`p-2 rounded-lg bg-gray-50 ${colorClass}`}>
+      <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0 p-3.5 sm:p-5">
+        <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">{title}</CardTitle>
+        <div className={`p-1.5 sm:p-2 rounded-lg bg-gray-50 ${colorClass}`}>
           {renderIcon()}
         </div>
       </CardHeader>
-      <CardContent>
-        <div className="text-2xl font-bold tracking-tight">{value}</div>
+      <CardContent className="p-3.5 sm:p-5 pt-0 sm:pt-0">
+        <div className="text-xl sm:text-2xl font-bold tracking-tight">{value}</div>
         <p className="text-xs mt-1 flex items-center">
           {!isNeutral && (
             <span
