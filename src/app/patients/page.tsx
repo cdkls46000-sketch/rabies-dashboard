@@ -411,59 +411,148 @@ export default function PatientsPage() {
         </div>
       )}
 
-      {/* Main Table and Chart */}
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-5 sm:gap-6">
-        {!isLoggedIn ? (
-          <Card className="xl:col-span-2 border-slate-200 shadow-xs overflow-hidden flex flex-col justify-between">
-            <CardHeader className="p-4 sm:p-5 pb-3 border-b bg-slate-50/70">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                <div>
-                  <CardTitle className="text-base sm:text-lg flex items-center gap-2">
-                    <Lock size={18} className="text-amber-600 shrink-0" />
-                    <span>ทะเบียนผู้สัมผัสโรคระดับหมู่บ้าน</span>
-                  </CardTitle>
-                  <CardDescription className="text-xs mt-0.5">
-                    จำกัดการเข้าถึงเฉพาะเจ้าหน้าที่สาธารณสุขตาม พ.ร.บ. คุ้มครองข้อมูลส่วนบุคคล (PDPA)
-                  </CardDescription>
-                </div>
-                <Badge variant="outline" className="bg-amber-50 text-amber-800 border-amber-300 text-xs w-fit">
-                  🔒 ซ่อนข้อมูล (ยังไม่ได้เข้าสู่ระบบ)
+      {/* ความครอบคลุมการฉีดวัคซีน PEP (แสดงก่อน ทะเบียนผู้สัมผัสโรคระดับหมู่บ้าน) */}
+      <Card className="w-full border-slate-200 shadow-xs overflow-hidden">
+        <CardHeader className="p-3.5 sm:p-5 border-b bg-slate-50/70">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+            <div>
+              <CardTitle className="text-base sm:text-lg flex items-center gap-2">
+                <Activity className="w-5 h-5 text-blue-600 shrink-0" />
+                <span>ความครอบคลุมการฉีดวัคซีน PEP</span>
+              </CardTitle>
+              <CardDescription className="text-xs mt-0.5">
+                อัตราผู้สัมผัสโรคที่ได้รับวัคซีนครบตามกำหนดแต่ละเข็ม (เข็ม 1 - 5) ประจำปี พ.ศ. {selectedYear}
+              </CardDescription>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge variant="outline" className="bg-emerald-50 text-emerald-800 border-emerald-300 text-xs font-semibold">
+                ✓ ฉีดครบชุด 93.8% (เกณฑ์เป้าหมายกระทรวงฯ ≥ 85%)
+              </Badge>
+              {overdueCount > 0 && (
+                <Badge variant="outline" className="bg-rose-50 text-rose-800 border-rose-300 text-xs font-semibold flex items-center gap-1">
+                  <AlertCircle size={12} />
+                  <span>ขาดนัด/เลยกำหนด {overdueCount} ราย</span>
                 </Badge>
-              </div>
-            </CardHeader>
-            <CardContent className="p-8 sm:p-14 text-center flex flex-col items-center justify-center space-y-4 bg-white flex-1">
-              <div className="w-16 h-16 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center border border-amber-200 shadow-xs">
-                <Lock size={32} />
+              )}
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="p-3.5 sm:p-5">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6 items-start">
+            {/* กราฟแท่งความครอบคลุม */}
+            <div className="lg:col-span-7">
+              {yearlyVaccineCoverageData[selectedYear] && yearlyVaccineCoverageData[selectedYear].length > 0 ? (
+                <VaccineCoverageChart data={yearlyVaccineCoverageData[selectedYear]} />
+              ) : (
+                <div className="h-[280px] flex items-center justify-center text-xs text-muted-foreground bg-slate-50 rounded-lg border border-dashed border-slate-200">
+                  ไม่มีข้อมูลรายงานในปี พ.ศ. {selectedYear}
+                </div>
+              )}
+            </div>
+
+            {/* สรุปรายละเอียดแต่ละเข็ม และระบบติดตาม Active Surveillance */}
+            <div className="lg:col-span-5 space-y-3">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-2 gap-2 text-xs">
+                <div className="p-2.5 bg-blue-50/70 border border-blue-200/80 rounded-lg">
+                  <div className="text-[11px] text-blue-700 font-medium">เข็ม 1 (Day 0)</div>
+                  <div className="text-base font-bold text-blue-950 mt-0.5">100%</div>
+                  <div className="text-[10px] text-blue-600">เริ่มฉีดทันที 133 ราย</div>
+                </div>
+                <div className="p-2.5 bg-sky-50/70 border border-sky-200/80 rounded-lg">
+                  <div className="text-[11px] text-sky-700 font-medium">เข็ม 2 (Day 3)</div>
+                  <div className="text-base font-bold text-sky-950 mt-0.5">96.5%</div>
+                  <div className="text-[10px] text-sky-600">ตามนัด 128 ราย</div>
+                </div>
+                <div className="p-2.5 bg-cyan-50/70 border border-cyan-200/80 rounded-lg">
+                  <div className="text-[11px] text-cyan-700 font-medium">เข็ม 3 (Day 7)</div>
+                  <div className="text-base font-bold text-cyan-950 mt-0.5">91.2%</div>
+                  <div className="text-[10px] text-cyan-600">ภูมิคุ้มกันระดับปลอดภัย</div>
+                </div>
+                <div className="p-2.5 bg-indigo-50/70 border border-indigo-200/80 rounded-lg">
+                  <div className="text-[11px] text-indigo-700 font-medium">เข็ม 4 (Day 14)</div>
+                  <div className="text-base font-bold text-indigo-950 mt-0.5">86.8%</div>
+                  <div className="text-[10px] text-indigo-600">ภูมิคุ้มกันคงที่</div>
+                </div>
+                <div className="p-2.5 bg-emerald-50/70 border border-emerald-200/80 rounded-lg col-span-2 sm:col-span-1 lg:col-span-2">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="text-[11px] text-emerald-700 font-medium">เข็ม 5 (Day 28) - ครบชุด</div>
+                      <div className="text-base font-bold text-emerald-950 mt-0.5">81.5% (Essen) / ครบสูตร ID 93.8%</div>
+                    </div>
+                    <Badge className="bg-emerald-600 text-white text-[10px]">
+                      {overdueCount > 0 ? `🚨 ขาดนัด ${overdueCount} ราย` : '✓ ปลอดภัย 100%'}
+                    </Badge>
+                  </div>
+                  <div className="text-[10px] text-emerald-700 mt-1">ผู้สัมผัส Cat III ได้รับเซรุ่ม RIG ร่วมด้วยครบถ้วน 100%</div>
+                </div>
               </div>
 
-              <div className="max-w-md space-y-2">
-                <h3 className="text-base sm:text-lg font-bold text-slate-900">
-                  ทะเบียนผู้สัมผัสโรคระดับหมู่บ้านถูกซ่อนไว้
-                </h3>
-                <p className="text-xs text-slate-600 leading-relaxed">
-                  เนื่องจากข้อมูลประกอบด้วยรายชื่อ-สกุล เลขประจำตัว HN ที่อยู่ระดับหมู่บ้าน และประวัติการรับวัคซีน PEP รายบุคคล ระบบจึงซ่อนข้อมูลไว้เพื่อคุ้มครองข้อมูลส่วนบุคคล (PDPA)
-                </p>
-                <p className="text-[11px] text-slate-500 font-medium">
-                  เจ้าหน้าที่สาธารณสุขและทีมสอบสวนโรค One Health กรุณาเข้าสู่ระบบเพื่อดูข้อมูลและบันทึกติดตามการฉีดวัคซีน
+              {/* กล่องคำแนะนำระบบติดตาม */}
+              <div className="p-3 bg-amber-50/80 rounded-lg text-xs text-amber-900 border border-amber-200/80 space-y-1">
+                <div className="font-semibold flex items-center gap-1.5 text-amber-950">
+                  💡 ระบบติดตามอัตโนมัติ (Active Surveillance & Defaulter Tracing)
+                </div>
+                <p className="text-[11px] leading-relaxed text-amber-800">
+                  เมื่อผู้สัมผัสโรคได้รับวัคซีนแต่ละเข็ม เจ้าหน้าที่สามารถกด <strong>&apos;แก้ไข&apos;</strong> ในตารางทะเบียนด้านล่างเพื่ออัปเดตเป็นเข็มถัดไป (เช่น 2/5, 3/5) หากเกินกำหนดนัด ระบบจะขึ้นเตือนเป็นสถานะ <strong>ขาดนัด</strong> อัตโนมัติ พร้อมปุ่ม <strong>&apos;ติดตาม&apos;</strong> โทรติดต่อผู้ป่วยหรือประสาน อสม. ลงพื้นที่
                 </p>
               </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
-              <div className="pt-2">
-                <Button
-                  onClick={() => {
-                    setLoginReason('เข้าสู่ระบบสำหรับเจ้าหน้าที่สาธารณสุขเพื่อดูทะเบียนผู้สัมผัสโรคระดับหมู่บ้าน');
-                    setIsLoginOpen(true);
-                  }}
-                  className="bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs h-9 px-5 gap-2 shadow-xs cursor-pointer active:scale-95"
-                >
-                  <LogIn size={15} />
-                  <span>เข้าสู่ระบบเพื่อแสดงทะเบียนผู้สัมผัสโรค</span>
-                </Button>
+      {/* ทะเบียนผู้สัมผัสโรคระดับหมู่บ้าน */}
+      {!isLoggedIn ? (
+        <Card className="w-full border-slate-200 shadow-xs overflow-hidden flex flex-col justify-between">
+          <CardHeader className="p-4 sm:p-5 pb-3 border-b bg-slate-50/70">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div>
+                <CardTitle className="text-base sm:text-lg flex items-center gap-2">
+                  <Lock size={18} className="text-amber-600 shrink-0" />
+                  <span>ทะเบียนผู้สัมผัสโรคระดับหมู่บ้าน</span>
+                </CardTitle>
+                <CardDescription className="text-xs mt-0.5">
+                  จำกัดการเข้าถึงเฉพาะเจ้าหน้าที่สาธารณสุขตาม พ.ร.บ. คุ้มครองข้อมูลส่วนบุคคล (PDPA)
+                </CardDescription>
               </div>
-            </CardContent>
-          </Card>
-        ) : (
-          <Card className="xl:col-span-2">
+              <Badge variant="outline" className="bg-amber-50 text-amber-800 border-amber-300 text-xs w-fit">
+                🔒 ซ่อนข้อมูล (ยังไม่ได้เข้าสู่ระบบ)
+              </Badge>
+            </div>
+          </CardHeader>
+          <CardContent className="p-8 sm:p-14 text-center flex flex-col items-center justify-center space-y-4 bg-white flex-1">
+            <div className="w-16 h-16 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center border border-amber-200 shadow-xs">
+              <Lock size={32} />
+            </div>
+
+            <div className="max-w-md space-y-2">
+              <h3 className="text-base sm:text-lg font-bold text-slate-900">
+                ทะเบียนผู้สัมผัสโรคระดับหมู่บ้านถูกซ่อนไว้
+              </h3>
+              <p className="text-xs text-slate-600 leading-relaxed">
+                เนื่องจากข้อมูลประกอบด้วยรายชื่อ-สกุล เลขประจำตัว HN ที่อยู่ระดับหมู่บ้าน และประวัติการรับวัคซีน PEP รายบุคคล ระบบจึงซ่อนข้อมูลไว้เพื่อคุ้มครองข้อมูลส่วนบุคคล (PDPA)
+              </p>
+              <p className="text-[11px] text-slate-500 font-medium">
+                เจ้าหน้าที่สาธารณสุขและทีมสอบสวนโรค One Health กรุณาเข้าสู่ระบบเพื่อดูข้อมูลและบันทึกติดตามการฉีดวัคซีน
+              </p>
+            </div>
+
+            <div className="pt-2">
+              <Button
+                onClick={() => {
+                  setLoginReason('เข้าสู่ระบบสำหรับเจ้าหน้าที่สาธารณสุขเพื่อดูทะเบียนผู้สัมผัสโรคระดับหมู่บ้าน');
+                  setIsLoginOpen(true);
+                }}
+                className="bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs h-9 px-5 gap-2 shadow-xs cursor-pointer active:scale-95"
+              >
+                <LogIn size={15} />
+                <span>เข้าสู่ระบบเพื่อแสดงทะเบียนผู้สัมผัสโรค</span>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      ) : (
+        <Card className="w-full border-slate-200 shadow-xs">
           <CardHeader className="p-3.5 sm:p-5">
             <div className="flex flex-col gap-3">
               <div>
@@ -922,35 +1011,7 @@ export default function PatientsPage() {
             </div>
           </CardContent>
         </Card>
-        )}
-        
-        {/* Chart card */}
-        <Card>
-          <CardHeader className="p-3.5 sm:p-5">
-            <CardTitle className="text-base sm:text-lg">ความครอบคลุมการฉีดวัคซีน PEP</CardTitle>
-            <CardDescription className="text-xs">
-              อัตราผู้สัมผัสโรคที่ได้รับวัคซีนครบตามกำหนดแต่ละเข็ม (เข็ม 1 - 5)
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="p-3.5 sm:p-5 pt-0 sm:pt-0">
-            {yearlyVaccineCoverageData[selectedYear] && yearlyVaccineCoverageData[selectedYear].length > 0 ? (
-              <VaccineCoverageChart data={yearlyVaccineCoverageData[selectedYear]} />
-            ) : (
-              <div className="h-[260px] flex items-center justify-center text-xs text-muted-foreground bg-slate-50 rounded-lg border border-dashed border-slate-200">
-                ไม่มีข้อมูลรายงานในปี พ.ศ. {selectedYear}
-              </div>
-            )}
-            <div className="mt-4 p-3 bg-blue-50 rounded-lg text-xs text-blue-800 border border-blue-100 space-y-1">
-              <div className="font-semibold flex items-center gap-1.5">
-                💡 ระบบติดตามอัตโนมัติ (Active Surveillance)
-              </div>
-              <p className="text-[11px] leading-relaxed text-blue-700">
-                เมื่อผู้สัมผัสโรคได้รับวัคซีนแต่ละเข็ม เจ้าหน้าที่สามารถกด <strong>&apos;แก้ไข&apos;</strong> เพื่ออัปเดตเป็นเข็มถัดไป (เช่น 2/5, 3/5) หากเกินกำหนดนัด ระบบจะขึ้นเตือนเป็นสถานะ <strong>ขาดนัด</strong> อัตโนมัติ พร้อมส่งสัญญาณเตือนภัย
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      )}
 
       {/* Interactive Dialogs */}
       <PepCalculatorDialog 
