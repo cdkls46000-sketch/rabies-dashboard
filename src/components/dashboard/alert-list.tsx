@@ -8,6 +8,7 @@ import { useData } from '@/context/data-context';
 import { Alert } from '@/types';
 import { shareToLine, formatLineShareMessage } from '@/lib/line-share';
 import { LineShareDialog } from '@/components/dashboard/line-share-dialog';
+import { LabReportDialog } from '@/components/dashboard/lab-report-dialog';
 import { 
   Share2, 
   Copy, 
@@ -21,7 +22,8 @@ import {
   ChevronUp, 
   Search,
   ShieldCheck,
-  AlertOctagon
+  AlertOctagon,
+  FileText
 } from 'lucide-react';
 
 export default function AlertList() {
@@ -31,6 +33,7 @@ export default function AlertList() {
   const [showAll, setShowAll] = useState<boolean>(false);
   const [copiedId, setCopiedId] = useState<number | null>(null);
   const [shareAlert, setShareAlert] = useState<Alert | null>(null);
+  const [selectedLabAlert, setSelectedLabAlert] = useState<Alert | null>(null);
 
   // Filter alerts by district or recent 1 month
   const filteredAlerts = useMemo(() => {
@@ -263,6 +266,17 @@ export default function AlertList() {
                         </>
                       )}
                     </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setSelectedLabAlert(alert)}
+                      className="h-8 px-3 text-xs font-semibold border-red-200 text-red-700 bg-red-50/50 hover:bg-red-100 hover:text-red-800 hover:border-red-300 gap-1.5 flex-1 lg:flex-initial cursor-pointer active:scale-95 shadow-2xs"
+                      title="เปิดดูใบรายงานผลทางห้องปฏิบัติการ (PDF)"
+                    >
+                      <FileText size={13} className="text-red-600" />
+                      <span>ผลทางห้องปฏิบัติการ (PDF)</span>
+                    </Button>
                   </div>
                 </div>
               </div>
@@ -300,6 +314,13 @@ export default function AlertList() {
         alert={shareAlert}
         isOpen={!!shareAlert}
         onClose={() => setShareAlert(null)}
+        onNotify={setToastMessage}
+      />
+
+      <LabReportDialog
+        alert={selectedLabAlert}
+        isOpen={!!selectedLabAlert}
+        onClose={() => setSelectedLabAlert(null)}
         onNotify={setToastMessage}
       />
     </Card>

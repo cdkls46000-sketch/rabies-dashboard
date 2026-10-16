@@ -147,6 +147,7 @@ export interface Alert {
   subdistrict?: string;
   village_name?: string;
   year?: FiscalYear;
+  pdf_url?: string;
 }
 
 // ===== Dashboard Summary Types =====
