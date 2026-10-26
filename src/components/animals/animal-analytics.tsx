@@ -50,151 +50,264 @@ export function AnimalAnalytics({ selectedYear }: AnimalAnalyticsProps) {
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5 sm:gap-4">
       {/* Card 1: Animal Ownership Breakdown */}
-      <Card className="border-slate-200">
-        <CardHeader className="p-3.5 sm:p-4 pb-2">
-          <CardTitle className="text-sm font-bold flex items-center justify-between">
-            <span className="flex items-center gap-1.5">
-              <Dog size={16} className="text-blue-600" />
-              <span>สถานะความเป็นเจ้าของสัตว์</span>
-            </span>
-            <Badge variant="outline" className="text-[10px] bg-blue-50 text-blue-700 border-blue-200 font-semibold">
-              {total} ตัว {selectedDistrict !== 'all' ? `(${selectedDistrictName})` : ''}
-            </Badge>
-          </CardTitle>
-          <CardDescription className="text-[11px]">
-            จำแนกสถานะสัตว์ที่ตรวจพบเชื้อพิษสุนัขบ้า (ผลบวก)
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="p-3.5 sm:p-4 pt-1 space-y-3">
-          {total === 0 ? (
-            <div className="py-8 text-center text-xs text-muted-foreground bg-slate-50 rounded-lg">
-              ไม่พบรายงานสัตว์ผลบวกในพื้นที่ {selectedDistrictName}
+      <div className="relative overflow-hidden rounded-2xl border border-blue-200/90 bg-gradient-to-br from-white via-blue-50/20 to-sky-50/40 shadow-xs hover:shadow-md transition-all p-4 sm:p-4.5 flex flex-col justify-between">
+        {/* Left Color Accent Bar */}
+        <div className="absolute top-0 left-0 w-1.5 h-full bg-blue-600" />
+
+        <div>
+          {/* Header */}
+          <div className="flex items-start justify-between gap-2 pb-3 border-b border-slate-200/70">
+            <div className="flex items-center gap-2.5">
+              <div className="p-2 rounded-xl bg-blue-100 text-blue-700 shadow-2xs">
+                <Dog size={18} />
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-slate-900 leading-tight">
+                  สถานะความเป็นเจ้าของสัตว์
+                </h3>
+                <p className="text-[11px] text-slate-500 font-medium mt-0.5">
+                  จำแนกสัตว์ตรวจพบเชื้อ (Lab +)
+                </p>
+              </div>
             </div>
-          ) : (
-            <>
-              {/* Progress bar stack */}
-              <div className="space-y-1.5">
-                <div className="flex justify-between text-xs font-semibold">
-                  <span className="text-slate-700">สุนัขจรจัด / สัตว์ไม่มีเจ้าของ</span>
-                  <span className="text-red-600">{stray} ตัว ({strayPct}%)</span>
-                </div>
-                <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
-                  <div className="bg-red-500 h-full rounded-full" style={{ width: `${strayPct}%` }} />
-                </div>
-              </div>
+            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-blue-100/80 text-blue-800 border border-blue-200 shadow-2xs">
+              {total} ตัว {selectedDistrict !== 'all' ? `(${selectedDistrictName})` : ''}
+            </span>
+          </div>
 
-              <div className="space-y-1.5">
-                <div className="flex justify-between text-xs font-semibold">
-                  <span className="text-slate-700">สุนัขมีเจ้าของ</span>
-                  <span className="text-amber-600">{owned} ตัว ({ownedPct}%)</span>
-                </div>
-                <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                  <div className="bg-amber-500 h-full rounded-full" style={{ width: `${ownedPct}%` }} />
-                </div>
+          {/* Content */}
+          <div className="pt-3 space-y-2.5">
+            {total === 0 ? (
+              <div className="py-8 text-center text-xs text-muted-foreground bg-slate-50/80 rounded-xl border border-dashed border-slate-200">
+                ไม่พบรายงานสัตว์ผลบวกในพื้นที่ {selectedDistrictName}
               </div>
-
-              {cow > 0 && (
-                <div className="space-y-1.5">
-                  <div className="flex justify-between text-xs font-semibold">
-                    <span className="text-slate-700">🐄 โค (วัว) ติดเชื้อข้ามสายพันธุ์</span>
-                    <span className="text-purple-600">{cow} ตัว ({cowPct}%)</span>
+            ) : (
+              <>
+                {/* 1. สุนัขจรจัด */}
+                <div className="p-2.5 rounded-xl bg-white border border-rose-200/80 shadow-2xs space-y-1.5">
+                  <div className="flex items-center justify-between text-xs font-semibold">
+                    <span className="flex items-center gap-1.5 text-slate-800">
+                      <span className="text-sm">🐕</span>
+                      <span>สุนัขจรจัด / สัตว์ไม่มีเจ้าของ</span>
+                    </span>
+                    <span className="font-bold text-rose-700 px-2 py-0.5 rounded-md bg-rose-50 border border-rose-200 text-[11px] flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-rose-600 animate-ping inline-block" />
+                      {stray} ตัว ({strayPct}%)
+                    </span>
                   </div>
                   <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                    <div className="bg-purple-600 h-full rounded-full" style={{ width: `${cowPct}%` }} />
+                    <div 
+                      className="bg-gradient-to-r from-red-500 via-rose-500 to-red-600 h-full rounded-full transition-all duration-500" 
+                      style={{ width: `${strayPct}%` }} 
+                    />
                   </div>
                 </div>
-              )}
 
-              <div className="p-2.5 bg-red-50/70 border border-red-200/60 rounded-lg text-[11px] text-red-900 leading-relaxed">
-                ⚠️ <strong>ข้อสังเกตระบาดวิทยา:</strong> สัตว์ติดเชื้อส่วนใหญ่เป็นสุนัขจรจัดในที่สาธารณะ วัด และชุมชน ซึ่งไม่เคยได้รับวัคซีนป้องกันโรคมาก่อน
-              </div>
-            </>
-          )}
-        </CardContent>
-      </Card>
+                {/* 2. สุนัขมีเจ้าของ */}
+                <div className="p-2.5 rounded-xl bg-white border border-amber-200/80 shadow-2xs space-y-1.5">
+                  <div className="flex items-center justify-between text-xs font-semibold">
+                    <span className="flex items-center gap-1.5 text-slate-800">
+                      <span className="text-sm">🐶</span>
+                      <span>สุนัขมีเจ้าของ</span>
+                    </span>
+                    <span className="font-bold text-amber-800 px-2 py-0.5 rounded-md bg-amber-50 border border-amber-200 text-[11px]">
+                      {owned} ตัว ({ownedPct}%)
+                    </span>
+                  </div>
+                  <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                    <div 
+                      className="bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 h-full rounded-full transition-all duration-500" 
+                      style={{ width: `${ownedPct}%` }} 
+                    />
+                  </div>
+                </div>
+
+                {/* 3. โค (วัว) */}
+                {cow > 0 && (
+                  <div className="p-2.5 rounded-xl bg-white border border-purple-200/80 shadow-2xs space-y-1.5">
+                    <div className="flex items-center justify-between text-xs font-semibold">
+                      <span className="flex items-center gap-1.5 text-slate-800">
+                        <span className="text-sm">🐄</span>
+                        <span>โค (วัว) ติดเชื้อข้ามสายพันธุ์</span>
+                      </span>
+                      <span className="font-bold text-purple-800 px-2 py-0.5 rounded-md bg-purple-50 border border-purple-200 text-[11px]">
+                        {cow} ตัว ({cowPct}%)
+                      </span>
+                    </div>
+                    <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                      <div 
+                        className="bg-gradient-to-r from-purple-500 to-indigo-600 h-full rounded-full transition-all duration-500" 
+                        style={{ width: `${cowPct}%` }} 
+                      />
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        </div>
+
+        {/* Footer Insight Callout */}
+        <div className="mt-3 p-2.5 rounded-xl bg-rose-50/90 border border-rose-200/90 text-[11px] text-rose-950 flex items-start gap-2 shadow-2xs">
+          <AlertOctagon size={15} className="text-rose-600 shrink-0 mt-0.5" />
+          <p className="leading-relaxed">
+            <strong>ข้อสังเกตระบาดวิทยา:</strong> สัตว์ติดเชื้อกว่า 90% เป็นสุนัขจรจัดในที่สาธารณะ วัด และชุมชน ซึ่งไม่เคยได้รับวัคซีนป้องกันโรคมาก่อน
+          </p>
+        </div>
+      </div>
 
       {/* Card 2: 5km Epidemic Zones Declaration Status */}
-      <Card className="border-slate-200">
-        <CardHeader className="p-3.5 sm:p-4 pb-2">
-          <CardTitle className="text-sm font-bold flex items-center justify-between">
-            <span className="flex items-center gap-1.5">
-              <Compass size={16} className="text-red-600" />
-              <span>เขตโรคระบาดสัตว์ชั่วคราว (รัศมี 5 กม.)</span>
-            </span>
-            <Badge variant="outline" className="text-[10px] bg-red-50 text-red-700 border-red-200 font-semibold">
-              พ.ร.บ.โรคระบาดสัตว์
-            </Badge>
-          </CardTitle>
-          <CardDescription className="text-[11px]">
-            สถานะประกาศเขตควบคุมโรครัศมี 5 กม. (ระยะเวลา 30 วัน)
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="p-3.5 sm:p-4 pt-1 space-y-3">
-          <div className="grid grid-cols-2 gap-2 text-center">
-            <div className="p-2.5 bg-red-50 border border-red-200 rounded-xl space-y-0.5">
-              <div className="flex items-center justify-center gap-1 text-red-700 text-xs font-bold">
-                <Flame size={13} className="animate-pulse" />
-                <span>ในรอบ 30 วัน (Active)</span>
+      <div className="relative overflow-hidden rounded-2xl border border-rose-200/90 bg-gradient-to-br from-white via-rose-50/20 to-amber-50/30 shadow-xs hover:shadow-md transition-all p-4 sm:p-4.5 flex flex-col justify-between">
+        {/* Left Color Accent Bar */}
+        <div className="absolute top-0 left-0 w-1.5 h-full bg-rose-600" />
+
+        <div>
+          {/* Header */}
+          <div className="flex items-start justify-between gap-2 pb-3 border-b border-slate-200/70">
+            <div className="flex items-center gap-2.5">
+              <div className="p-2 rounded-xl bg-rose-100 text-rose-700 shadow-2xs">
+                <Compass size={18} />
               </div>
-              <p className="text-2xl font-black text-red-600">{activeZones} <span className="text-xs font-normal text-red-700">พื้นที่</span></p>
-              <p className="text-[10px] text-red-800 font-medium">
-                {activeZones > 0 ? 'ประกาศ พ.ร.บ. ควบคุมเข้มงวด' : 'ไม่มีจุด Active ในรอบ 30 วัน'}
+              <div>
+                <h3 className="text-sm font-bold text-slate-900 leading-tight">
+                  เขตโรคระบาดสัตว์ชั่วคราว (5 กม.)
+                </h3>
+                <p className="text-[11px] text-slate-500 font-medium mt-0.5">
+                  รัศมีควบคุมโรคตาม พ.ร.บ. (30 วัน)
+                </p>
+              </div>
+            </div>
+            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-rose-100 text-rose-800 border border-rose-200 shadow-2xs">
+              พ.ร.บ.โรคระบาดสัตว์
+            </span>
+          </div>
+
+          {/* 2 Big Stat Cards */}
+          <div className="pt-3 grid grid-cols-2 gap-2">
+            {/* Active Box */}
+            <div className="p-3 rounded-xl bg-gradient-to-br from-rose-500 to-red-600 text-white shadow-sm shadow-rose-500/25 flex flex-col justify-between">
+              <div className="flex items-center justify-between text-[11px] font-medium text-rose-100">
+                <span className="flex items-center gap-1">
+                  <Flame size={13} className="text-amber-300 animate-pulse" />
+                  <span>ในรอบ 30 วัน</span>
+                </span>
+                <span className="px-1.5 py-0.2 bg-white/20 rounded text-[9px] font-bold">Active</span>
+              </div>
+              <div className="my-1">
+                <span className="text-3xl font-black tracking-tight leading-none text-white">{activeZones}</span>
+                <span className="text-xs font-semibold ml-1 text-rose-100">พื้นที่</span>
+              </div>
+              <p className="text-[10px] text-rose-100 truncate font-medium">
+                {activeZones > 0 ? 'ต.โพนงาม & ต.ดอนสมบูรณ์' : 'ไม่มีจุด Active'}
               </p>
             </div>
 
-            <div className="p-2.5 bg-emerald-50 border border-emerald-200 rounded-xl space-y-0.5">
-              <div className="flex items-center justify-center gap-1 text-emerald-700 text-xs font-bold">
-                <ShieldCheck size={13} />
-                <span>พ้นกำหนด 30 วัน</span>
+            {/* Resolved Box */}
+            <div className="p-3 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-sm shadow-emerald-500/25 flex flex-col justify-between">
+              <div className="flex items-center justify-between text-[11px] font-medium text-emerald-100">
+                <span className="flex items-center gap-1">
+                  <ShieldCheck size={13} className="text-emerald-200" />
+                  <span>พ้น 30 วันแล้ว</span>
+                </span>
+                <span className="px-1.5 py-0.2 bg-white/20 rounded text-[9px] font-bold">Safe</span>
               </div>
-              <p className="text-2xl font-black text-emerald-700">{expiredZones} <span className="text-xs font-normal text-emerald-700">พื้นที่</span></p>
-              <p className="text-[10px] text-emerald-800 font-medium">เข้าสู่ระยะเฝ้าระวังปกติ</p>
+              <div className="my-1">
+                <span className="text-3xl font-black tracking-tight leading-none text-white">{expiredZones}</span>
+                <span className="text-xs font-semibold ml-1 text-emerald-100">พื้นที่</span>
+              </div>
+              <p className="text-[10px] text-emerald-100 truncate font-medium">
+                เข้าสู่ระยะเฝ้าระวังปกติ
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* 3 Action Protocols */}
+        <div className="mt-3 p-2.5 rounded-xl bg-slate-50 border border-slate-200/90 text-[11px] text-slate-800 space-y-1.5 shadow-2xs">
+          <div className="font-bold text-slate-900 flex items-center gap-1">
+            <span>🛡️ 3 มาตรการบังคับในเขต 5 กม.:</span>
+          </div>
+          <div className="grid grid-cols-1 gap-1 text-[10.5px]">
+            <div className="flex items-center gap-1.5 text-slate-700 bg-white p-1 rounded-md border border-slate-200/60">
+              <span className="text-rose-600 font-bold shrink-0">1.</span>
+              <span className="truncate">ห้ามเคลื่อนย้ายสัตว์เข้า-ออกรัศมี 5 กม.</span>
+            </div>
+            <div className="flex items-center gap-1.5 text-slate-700 bg-white p-1 rounded-md border border-slate-200/60">
+              <span className="text-blue-600 font-bold shrink-0">2.</span>
+              <span className="truncate">ระดมปูพรมฉีดวัคซีนสัตว์รอบจุดเกิดเหตุ 100%</span>
+            </div>
+            <div className="flex items-center gap-1.5 text-slate-700 bg-white p-1 rounded-md border border-slate-200/60">
+              <span className="text-amber-600 font-bold shrink-0">3.</span>
+              <span className="truncate">กักสัตว์ดูอาการ 14 วัน หากตายส่งตรวจทันที</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Card 3: Vaccination History in Infected Animals */}
+      <div className="relative overflow-hidden rounded-2xl border border-emerald-200/90 bg-gradient-to-br from-white via-emerald-50/20 to-teal-50/30 shadow-xs hover:shadow-md transition-all p-4 sm:p-4.5 flex flex-col justify-between">
+        {/* Left Color Accent Bar */}
+        <div className="absolute top-0 left-0 w-1.5 h-full bg-emerald-600" />
+
+        <div>
+          {/* Header */}
+          <div className="flex items-start justify-between gap-2 pb-3 border-b border-slate-200/70">
+            <div className="flex items-center gap-2.5">
+              <div className="p-2 rounded-xl bg-emerald-100 text-emerald-700 shadow-2xs">
+                <Syringe size={18} />
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-slate-900 leading-tight">
+                  ประวัติวัคซีนก่อนติดเชื้อ
+                </h3>
+                <p className="text-[11px] text-slate-500 font-medium mt-0.5">
+                  ความครอบคลุมวัคซีนในสัตว์ติดเชื้อ
+                </p>
+              </div>
+            </div>
+            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200 shadow-2xs">
+              One Health Evidence
+            </span>
+          </div>
+
+          {/* Hero Mega Metric Card */}
+          <div className="pt-3">
+            <div className="p-3.5 rounded-2xl bg-gradient-to-br from-rose-50 via-white to-red-50/60 border border-rose-200/90 text-center shadow-2xs space-y-1">
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800 border border-rose-300">
+                <AlertOctagon size={11} />
+                <span>สัตว์ติดเชื้อที่ไม่เคยฉีดวัคซีน</span>
+              </span>
+              <div className="text-4xl sm:text-5xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-red-600 via-rose-600 to-red-700 py-1">
+                100%
+              </div>
+              <p className="text-[11px] font-bold text-rose-800">
+                {total > 0 ? `(ทั้ง ${total} ตัว ไม่พบประวัติการได้รับวัคซีนแม้แต่ตัวเดียว)` : 'ไม่มีรายงานสัตว์ติดเชื้อในพื้นที่นี้'}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Contrast Comparison Pill & Key Insight */}
+        <div className="mt-3 space-y-2">
+          <div className="grid grid-cols-2 gap-1.5 text-center text-[10.5px]">
+            <div className="p-1.5 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 font-bold">
+              ✓ ฉีดวัคซีน = ปลอดโรค
+            </div>
+            <div className="p-1.5 rounded-lg bg-rose-50 border border-rose-200 text-rose-800 font-bold">
+              ✕ ไม่ฉีด = เสี่ยงติดเชื้อ
             </div>
           </div>
 
-          <div className="p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-[11px] text-slate-700 space-y-1">
-            <p className="font-semibold text-slate-900">🛡️ มาตรการบังคับในเขต 5 กม.:</p>
-            <ul className="list-disc list-inside space-y-0.5 text-slate-600">
-              <li>ห้ามเคลื่อนย้ายสัตว์เข้า-ออกโดยไม่ได้รับอนุญาต</li>
-              <li>ระดมปูพรมฉีดวัคซีนสัตว์รอบจุดเกิดเหตุ 100%</li>
-              <li>กักสัตว์ดูอาการ 14 วัน หากตายให้ส่งตรวจทันที</li>
-            </ul>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Card 3: Vaccination History in Infected Animals */}
-      <Card className="border-slate-200">
-        <CardHeader className="p-3.5 sm:p-4 pb-2">
-          <CardTitle className="text-sm font-bold flex items-center justify-between">
-            <span className="flex items-center gap-1.5">
-              <Syringe size={16} className="text-emerald-600" />
-              <span>ประวัติวัคซีนก่อนติดเชื้อ</span>
-            </span>
-            <Badge variant="outline" className="text-[10px] bg-emerald-50 text-emerald-700 border-emerald-200 font-semibold">
-              Immunization
-            </Badge>
-          </CardTitle>
-          <CardDescription className="text-[11px]">
-            การได้รับวัคซีนป้องกันโรคพิษสุนัขบ้าในสัตว์ติดเชื้อ
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="p-3.5 sm:p-4 pt-1 space-y-3">
-          <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-center space-y-1">
-            <div className="text-xs font-bold text-rose-800">สัตว์ติดเชื้อที่ไม่เคยฉีดวัคซีน</div>
-            <div className="text-3xl font-black text-rose-600">100%</div>
-            <p className="text-[10px] text-rose-700">
-              {total > 0 ? `(ทั้ง ${total} ตัว ไม่พบประวัติการได้รับวัคซีนมาก่อน)` : 'ไม่มีรายงานสัตว์ติดเชื้อในพื้นที่นี้'}
+          <div className="p-2.5 rounded-xl bg-blue-50/90 border border-blue-200/90 text-[11px] text-blue-950 flex items-start gap-2 shadow-2xs">
+            <ShieldCheck size={15} className="text-blue-600 shrink-0 mt-0.5" />
+            <p className="leading-relaxed">
+              <strong>ประสิทธิภาพวัคซีน:</strong> ยืนยันว่าการฉีดวัคซีนในสัตว์ครอบคลุม &ge; 80% สามารถตัดวงจรการแพร่เชื้อสู่คนได้อย่างเด็ดขาด
             </p>
           </div>
-
-          <div className="p-2.5 bg-blue-50/70 border border-blue-200/70 rounded-lg text-[11px] text-blue-900 leading-relaxed">
-            💡 <strong>ประสิทธิภาพวัคซีน:</strong> ยืนยันว่าการฉีดวัคซีนป้องกันโรคพิษสุนัขบ้าในสัตว์อย่างทั่วถึง (เป้าหมาย &ge; 80%) สามารถตัดวงจรการแพร่เชื้อสู่คนได้อย่างมีประสิทธิผลสูงสุด
-          </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }

@@ -1,14 +1,14 @@
 'use client';
 
 import React, { useState } from 'react';
-import KpiCard from '@/components/dashboard/kpi-card';
-import { PawPrint, AlertTriangle, Clock, Syringe, MapPin } from 'lucide-react';
+import { PawPrint, AlertTriangle, Clock, Syringe, MapPin, ShieldCheck } from 'lucide-react';
 import { 
   yearlyAnimalSummaries, 
   yearlyLabSummaries, 
   yearlyDistrictVaccinationData 
 } from '@/lib/mock-data';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { LabResultsChart } from '@/components/animals/lab-results-chart';
 import { DistrictVaccinationTable } from '@/components/animals/district-vaccination-table';
 import { PositiveAnimalTable } from '@/components/animals/positive-animal-table';
@@ -93,52 +93,165 @@ export default function AnimalsPage() {
           </Button>
         </div>
       )}
-      
-      {/* KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        <KpiCard 
-          title="สัตว์มีประวัติรายงานสงสัย" 
-          value={`${totalReportedCount.toLocaleString()} ตัว`} 
-          change={animalSummary.totalReportedChange} 
-          icon={PawPrint} 
-          colorClass="text-blue-500" 
-        />
-        <KpiCard 
-          title="ตรวจยืนยันผลบวก (Rabies +)" 
-          value={`${positiveAnimalsCount.toLocaleString()} ตัว`} 
-          change={animalSummary.positiveChange} 
-          icon={AlertTriangle} 
-          colorClass="text-red-500" 
-        />
-        <KpiCard 
-          title="ตัวอย่างส่งตรวจรอผล Lab" 
-          value={`${animalSummary.pendingLab.toLocaleString()} ตัว`} 
-          change={animalSummary.pendingLabChange} 
-          icon={Clock} 
-          colorClass="text-amber-500" 
-        />
-        <KpiCard 
-          title="สัตว์ได้รับการฉีดวัคซีนแล้ว" 
-          value={`${vaccinatedCount.toLocaleString()} ตัว`} 
-          change={animalSummary.vaccinatedChange} 
-          icon={Syringe} 
-          colorClass="text-emerald-500" 
-        />
+
+      {/* แถบชี้แจง One Health สัตว์: บูรณาการเฝ้าระวังเชิงรุก */}
+      <div className="p-3 bg-gradient-to-r from-blue-50/90 via-sky-50/70 to-indigo-50/60 border border-blue-200/90 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs shadow-2xs">
+        <div className="flex items-center gap-2.5">
+          <div className="p-2 bg-blue-600 text-white rounded-xl shrink-0 shadow-xs">
+            <PawPrint className="w-4 h-4" />
+          </div>
+          <div>
+            <div className="font-bold text-blue-950 flex items-center gap-2">
+              <span>ระบบเฝ้าระวังโรคพิษสุนัขบ้าในสัตว์เชิงรุก (Active Veterinary One Health Surveillance)</span>
+              <span className="hidden sm:inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-800 border border-blue-300">
+                18 อำเภอ จ.กาฬสินธุ์
+              </span>
+            </div>
+            <p className="text-[11px] text-blue-800 mt-0.5">
+              บูรณาการส่งตรวจตัวอย่างหัวสัตว์ร่วมกับสำนักงานปศุสัตว์จังหวัดกาฬสินธุ์ และศูนย์วิจัยและพัฒนาการสัตวแพทย์ (ศวพ.ขอนแก่น)
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2 shrink-0 self-start sm:self-center">
+          <Badge className="bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] px-2.5 py-1 font-semibold flex items-center gap-1 shadow-xs">
+            <ShieldCheck size={13} />
+            <span>ปลอดโรคในคน 100%</span>
+          </Badge>
+        </div>
       </div>
+      
+      {/* 4 Premium KPI Cards with Baseline Alignment & Dual-Tone Medical Styling */}
+      {(() => {
+        const animalMetrics = [
+          {
+            id: 'reported',
+            title: 'สัตว์มีประวัติรายงานสงสัย',
+            subtitle: selectedDistrict === 'all' ? 'ระบบเฝ้าระวัง อปท. & ปศุสัตว์' : `เฝ้าระวังเฉพาะ ${selectedDistrictName}`,
+            value: totalReportedCount.toLocaleString(),
+            unit: 'ตัว',
+            badge: '🔍 เฝ้าระวังกักดูอาการ 14 วัน',
+            icon: PawPrint,
+            border: 'border-blue-200/90',
+            bgGradient: 'bg-gradient-to-br from-blue-50/80 via-white to-blue-50/30',
+            accentBar: 'bg-blue-600',
+            iconBg: 'bg-blue-100 text-blue-700',
+            valueColor: 'text-blue-950',
+            badgeClass: 'bg-blue-100/80 text-blue-800 border border-blue-200',
+          },
+          {
+            id: 'positive',
+            title: 'ตรวจยืนยันผลบวก (Rabies +)',
+            subtitle: 'ชันสูตร DFA / RT-PCR พบเชื้อ',
+            value: positiveAnimalsCount.toLocaleString(),
+            unit: 'ตัว',
+            badge: '🔴 ศวพ.ขอนแก่น ยืนยันผลบวก',
+            icon: AlertTriangle,
+            border: 'border-rose-300',
+            bgGradient: 'bg-gradient-to-br from-rose-50/90 via-white to-rose-50/30 ring-1 ring-rose-200/60',
+            accentBar: 'bg-rose-600',
+            iconBg: 'bg-rose-100 text-rose-700',
+            valueColor: 'text-rose-950',
+            badgeClass: 'bg-rose-100 text-rose-800 font-bold border border-rose-300',
+          },
+          {
+            id: 'pending',
+            title: 'ตัวอย่างส่งตรวจรอผล Lab',
+            subtitle: 'ระยะเวลาตรวจวิเคราะห์ 24-48 ชม.',
+            value: animalSummary.pendingLab.toLocaleString(),
+            unit: 'ตัว',
+            badge: animalSummary.pendingLab === 0 ? '✓ รายงานผลครบ ไม่มียอดค้าง' : '⏳ รอผลตรวจยืนยัน',
+            icon: Clock,
+            border: 'border-amber-200/90',
+            bgGradient: 'bg-gradient-to-br from-amber-50/80 via-white to-amber-50/30',
+            accentBar: 'bg-amber-500',
+            iconBg: 'bg-amber-100 text-amber-700',
+            valueColor: 'text-amber-950',
+            badgeClass: 'bg-amber-100/80 text-amber-800 border border-amber-200',
+          },
+          {
+            id: 'vaccinated',
+            title: 'สัตว์ได้รับการฉีดวัคซีนแล้ว',
+            subtitle: matchedDistrictVax ? `ความครอบคลุม ${matchedDistrictVax.coverage}%` : 'ความครอบคลุมภาพรวม 87.9%',
+            value: vaccinatedCount.toLocaleString(),
+            unit: 'ตัว',
+            badge: '🛡️ เกณฑ์ปลอดภัย (≥ 80%)',
+            icon: Syringe,
+            border: 'border-emerald-200/90',
+            bgGradient: 'bg-gradient-to-br from-emerald-50/80 via-white to-emerald-50/30',
+            accentBar: 'bg-emerald-600',
+            iconBg: 'bg-emerald-100 text-emerald-700',
+            valueColor: 'text-emerald-950',
+            badgeClass: 'bg-emerald-100/80 text-emerald-800 font-bold border border-emerald-200',
+          },
+        ];
+
+        return (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+            {animalMetrics.map((item) => {
+              const Icon = item.icon;
+              return (
+                <div
+                  key={item.id}
+                  className={`relative overflow-hidden rounded-2xl border ${item.border} ${item.bgGradient} shadow-2xs hover:shadow-md transition-all p-3 sm:p-3.5 flex flex-col justify-between`}
+                >
+                  {/* Left Color Accent Bar */}
+                  <div className={`absolute top-0 left-0 w-1.5 h-full ${item.accentBar}`} />
+
+                  {/* Header with Fixed Height for 100% Horizontal Alignment */}
+                  <div className="flex items-start justify-between gap-1 min-h-[44px]">
+                    <div className="min-w-0 pr-1 pl-1">
+                      <div className="text-xs sm:text-[13px] font-bold text-slate-900 tracking-tight leading-snug">
+                        {item.title}
+                      </div>
+                      <div className="text-[10px] text-slate-500 font-medium leading-tight mt-0.5 truncate">
+                        {item.subtitle}
+                      </div>
+                    </div>
+                    <div className={`p-1.5 rounded-xl shrink-0 ${item.iconBg}`}>
+                      <Icon size={15} />
+                    </div>
+                  </div>
+
+                  {/* Value and Unit Baseline Container: Exactly Aligned Across All Cards */}
+                  <div className="mt-2 pt-2 border-t border-slate-200/60 pl-1">
+                    <div className="flex items-baseline gap-1">
+                      <span className={`text-2xl sm:text-[28px] font-black tracking-tight leading-none ${item.valueColor}`}>
+                        {item.value}
+                      </span>
+                      {item.unit && (
+                        <span className="text-xs font-semibold text-slate-500">
+                          {item.unit}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Status Badge */}
+                    <div className="mt-2 flex items-center">
+                      <span className={`text-[10px] px-2 py-0.5 rounded-md font-semibold truncate ${item.badgeClass}`}>
+                        {item.badge}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        );
+      })()}
 
       {/* Animal Deep Analytics: Ownership, 5km Zones, Vaccination History */}
       <AnimalAnalytics selectedYear={selectedYear} />
 
       {/* Lab Results and District Table */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-5 sm:gap-6">
-        <Card className="xl:col-span-1">
-          <CardHeader className="p-3.5 sm:p-5">
+        <Card className="xl:col-span-1 rounded-2xl border-slate-200 shadow-xs overflow-hidden">
+          <CardHeader className="p-3.5 sm:p-5 border-b bg-slate-50/70">
             <CardTitle className="text-base sm:text-lg">ผลตรวจทางห้องปฏิบัติการ (DFA/PCR)</CardTitle>
             <CardDescription className="text-xs">
               ตัวอย่างส่งตรวจ สถาบันสุขภาพสัตว์แห่งชาติ / ศูนย์วิจัยและพัฒนาการสัตวแพทย์
             </CardDescription>
           </CardHeader>
-          <CardContent className="p-3.5 sm:p-5 pt-0 sm:pt-0">
+          <CardContent className="p-3.5 sm:p-5 pt-3 space-y-3">
             {labSummary.positive === 0 && labSummary.negative === 0 ? (
               <div className="h-[260px] flex items-center justify-center text-xs text-muted-foreground bg-slate-50 rounded-lg border border-dashed border-slate-200">
                 ไม่มีข้อมูลรายงานผลตรวจในปี พ.ศ. {selectedYear}
@@ -146,22 +259,25 @@ export default function AnimalsPage() {
             ) : (
               <>
                 <LabResultsChart data={labSummary} />
-                <div className="mt-4 p-3 bg-slate-50 rounded-lg text-xs text-slate-600 border border-slate-200">
-                  📌 ผลบวกทั้งหมดพบใน สุนัข 31 ตัว (สุนัขจรจัด 29 ตัว, สุนัขมีเจ้าของ 2 ตัว) และโค 1 ตัว
+                <div className="p-2.5 bg-slate-50 rounded-xl text-xs text-slate-700 border border-slate-200/80 flex items-start gap-2 shadow-2xs">
+                  <span className="text-sm">📌</span>
+                  <span className="leading-relaxed">
+                    ผลบวกทั้งหมดพบใน สุนัข 31 ตัว (สุนัขจรจัด 29 ตัว, สุนัขมีเจ้าของ 2 ตัว) และโค 1 ตัว
+                  </span>
                 </div>
               </>
             )}
           </CardContent>
         </Card>
         
-        <Card className="xl:col-span-2">
-          <CardHeader className="p-3.5 sm:p-5">
+        <Card className="xl:col-span-2 rounded-2xl border-slate-200 shadow-xs overflow-hidden">
+          <CardHeader className="p-3.5 sm:p-5 border-b bg-slate-50/70">
             <CardTitle className="text-base sm:text-lg">สถิติการฉีดวัคซีนสัตว์ รายอำเภอ (จ.กาฬสินธุ์)</CardTitle>
             <CardDescription className="text-xs">
               เป้าหมายและผลการดำเนินงาน อปท. ร่วมกับปศุสัตว์อำเภอ (เกณฑ์ความปลอดภัย ≥ 80%)
             </CardDescription>
           </CardHeader>
-          <CardContent className="p-3.5 sm:p-5 pt-0 sm:pt-0">
+          <CardContent className="p-3.5 sm:p-5 pt-3">
             {districtData.length === 0 ? (
               <div className="h-[260px] flex items-center justify-center text-xs text-muted-foreground bg-slate-50 rounded-lg border border-dashed border-slate-200">
                 ไม่มีข้อมูลรายงานในปี พ.ศ. {selectedYear}
