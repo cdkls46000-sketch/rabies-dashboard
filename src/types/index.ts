@@ -285,4 +285,24 @@ export interface AuthUser {
   mfaVerified?: boolean;
 }
 
+export interface QuarantineAnimal {
+  id: string;
+  code: string;
+  animalName?: string;
+  species: 'dog' | 'cat' | 'cattle' | 'other';
+  speciesLabel: string;
+  breed: string;
+  ownership: 'owned' | 'stray';
+  ownerName: string;
+  district: string;
+  subdistrict: string;
+  village?: string;
+  startDate: string; // ISO date 'YYYY-MM-DD'
+  quarantineDays: number; // default 14
+  clinicalStatus: 'normal' | 'symptomatic' | 'dead';
+  symptomDetails?: string;
+  notes?: string;
+  photoUrl?: string;
+}
+
 export type { SecurityAuditLog } from '@/lib/security';
