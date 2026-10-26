@@ -5,6 +5,9 @@ import { DataProvider, useData } from '@/context/data-context';
 import { NewCaseDialog } from '@/components/forms/new-case-dialog';
 import { EditPatientDialog } from '@/components/forms/edit-patient-dialog';
 import { LoginDialog } from '@/components/auth/login-dialog';
+import { ChangePasswordDialog } from '@/components/auth/change-password-dialog';
+import { SecurityAuditDialog } from '@/components/auth/security-audit-dialog';
+import { SessionTimeoutDialog } from '@/components/auth/session-timeout-dialog';
 
 function ToastNotifier() {
   const { toastMessage } = useData();
@@ -23,6 +26,9 @@ export function AppProviders({ children }: { children: React.ReactNode }) {
       <NewCaseDialog />
       <EditPatientDialog />
       <LoginDialog />
+      <ChangePasswordDialog />
+      <SecurityAuditDialog />
+      <SessionTimeoutDialog />
       <ToastNotifier />
     </DataProvider>
   );

@@ -279,4 +279,10 @@ export interface AuthUser {
   role: 'officer' | 'admin';
   position: string;
   organization: string;
+  phoneMasked?: string;
+  lastLogin?: string;
+  sessionToken?: string;
+  mfaVerified?: boolean;
 }
+
+export type { SecurityAuditLog } from '@/lib/security';

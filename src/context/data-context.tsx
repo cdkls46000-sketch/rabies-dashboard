@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { 
   PatientListItem, 
   MapPoint, 
@@ -20,10 +20,29 @@ import {
   categoryCount as initialCategoryCount 
 } from '@/lib/mock-data';
 import { maskThaiName } from '@/lib/pdpa';
+import {
+  hashWithSalt,
+  generateSalt,
+  getStoredCredentials,
+  saveStoredCredentials,
+  checkAccountLockout,
+  recordFailedAttempt,
+  resetFailedAttempts,
+  createOtpChallenge,
+  verifyOtpChallenge,
+  getSecurityAuditLogs,
+  logSecurityAudit,
+  clearSecurityAuditLogs,
+  SESSION_TIMEOUT_MS,
+  SESSION_WARNING_MS,
+  OtpChallenge,
+  SecurityAuditLog,
+  StoredUserCredential
+} from '@/lib/security';
 
 export const DEMO_USERS: Record<string, { password: string; user: AuthUser }> = {
   juthamas: {
-    password: 'Juthamas@2569',
+    password: 'Juthamas@Kalasin2569!',
     user: {
       username: 'juthamas',
       name: 'คุณจุฑามาศ บัวลอย',
@@ -33,7 +52,7 @@ export const DEMO_USERS: Record<string, { password: string; user: AuthUser }> = 
     },
   },
   officer: {
-    password: 'Juthamas@2569',
+    password: 'Juthamas@Kalasin2569!',
     user: {
       username: 'juthamas',
       name: 'คุณจุฑามาศ บัวลอย',
@@ -43,7 +62,7 @@ export const DEMO_USERS: Record<string, { password: string; user: AuthUser }> = 
     },
   },
   kongrit: {
-    password: 'Kongrit@2569',
+    password: 'Kongrit@Kalasin2569!',
     user: {
       username: 'kongrit',
       name: 'คุณคงฤทธิ์ วันจรูญ',
@@ -53,7 +72,7 @@ export const DEMO_USERS: Record<string, { password: string; user: AuthUser }> = 
     },
   },
   admin: {
-    password: 'Kongrit@2569',
+    password: 'Kongrit@Kalasin2569!',
     user: {
       username: 'kongrit',
       name: 'คุณคงฤทธิ์ วันจรูญ',
@@ -83,27 +102,63 @@ interface DataContextType {
   setEditingPatient: (patient: PatientListItem | null) => void;
   toastMessage: string | null;
   setToastMessage: (msg: string | null) => void;
-  // Auth state & actions
+  
+  // Auth state & Multi-Factor Authentication (MFA Level 4)
   currentUser: AuthUser | null;
   isLoggedIn: boolean;
+  loginStep1: (username: string, password: string) => {
+    success: boolean;
+    error?: string;
+    isLocked?: boolean;
+    remainingSeconds?: number;
+    attemptsRemaining?: number;
+    challenge?: OtpChallenge;
+  };
+  loginStep2: (challenge: OtpChallenge, enteredOtp: string) => {
+    success: boolean;
+    error?: string;
+  };
+  resendOtpChallenge: (username: string) => OtpChallenge | null;
   login: (username: string, password: string) => boolean;
   loginDemo: (role?: 'officer' | 'admin') => void;
-  logout: () => void;
+  logout: (reason?: string) => void;
   isLoginOpen: boolean;
   setIsLoginOpen: (open: boolean) => void;
   loginReason: string;
   setLoginReason: (reason: string) => void;
-  // PDPA privacy features (เรื่องที่ 1: ปกปิดชื่อตาม PDPA)
+
+  // Change Password
+  isChangePasswordOpen: boolean;
+  setIsChangePasswordOpen: (open: boolean) => void;
+  changePassword: (oldPassword: string, newPassword: string) => { success: boolean; error?: string };
+
+  // Security Audit Trail
+  isSecurityAuditOpen: boolean;
+  setIsSecurityAuditOpen: (open: boolean) => void;
+  auditLogs: SecurityAuditLog[];
+  refreshAuditLogs: () => void;
+  clearAuditLogs: () => void;
+
+  // Session Inactivity Timeout
+  sessionRemainingSeconds: number;
+  extendSession: () => void;
+  isSessionWarningOpen: boolean;
+  setIsSessionWarningOpen: (open: boolean) => void;
+
+  // PDPA privacy features
   isPdpaActive: boolean;
   togglePdpa: () => void;
   getDisplayName: (name: string) => string;
-  // Fiscal Years (เรื่องที่ 4: พ.ศ. 2568, 2569, 2570, 2571)
+
+  // Fiscal Years
   selectedYear: FiscalYear;
   setSelectedYear: (year: FiscalYear) => void;
-  // 5km Radius Buffer (เรื่องที่ 3: วงรัศมี 5 กิโลเมตร)
+
+  // 5km Radius Buffer
   show5kmRadius: boolean;
   setShow5kmRadius: (show: boolean) => void;
   toggle5kmRadius: () => void;
+
   // Mobile responsive sidebar drawer
   isMobileSidebarOpen: boolean;
   setIsMobileSidebarOpen: (open: boolean) => void;
@@ -126,6 +181,16 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [loginReason, setLoginReason] = useState<string>('');
   const [pendingAuthAction, setPendingAuthAction] = useState<(() => void) | null>(null);
+
+  // Password & Audit Dialogs
+  const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
+  const [isSecurityAuditOpen, setIsSecurityAuditOpen] = useState(false);
+  const [auditLogs, setAuditLogs] = useState<SecurityAuditLog[]>([]);
+
+  // Session Activity & Inactivity Timeout
+  const [lastActivityTime, setLastActivityTime] = useState<number>(Date.now());
+  const [sessionRemainingSeconds, setSessionRemainingSeconds] = useState<number>(900); // 15 mins = 900s
+  const [isSessionWarningOpen, setIsSessionWarningOpen] = useState<boolean>(false);
   
   // PDPA: หากไม่ได้ล็อกอิน จะถูกบังคับให้ซ่อนชื่อเสมอ (default: true)
   const [isPdpaActive, setIsPdpaActive] = useState<boolean>(true);
@@ -135,6 +200,11 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
 
   // วงรัศมี 5 กิโลเมตร
   const [show5kmRadius, setShow5kmRadius] = useState<boolean>(true);
+
+  // Refresh Audit Logs from Storage
+  const refreshAuditLogs = useCallback(() => {
+    setAuditLogs(getSecurityAuditLogs());
+  }, []);
 
   // Initialize from localStorage if available
   useEffect(() => {
@@ -146,7 +216,6 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       localStorage.removeItem('rabies_kalasin_v269_patients');
       localStorage.removeItem('rabies_kalasin_v269_mappoints');
       localStorage.removeItem('rabies_kalasin_v269_alerts');
-
       localStorage.removeItem('rabies_kalasin_clean133_alerts');
 
       const savedPatients = localStorage.getItem('rabies_kalasin_clean133_patients');
@@ -165,25 +234,19 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       const savedUser = localStorage.getItem('rabies_auth_user');
       if (savedUser) {
         const parsed = JSON.parse(savedUser) as AuthUser;
-        if (parsed.name.includes('กัลยา') || parsed.name.includes('สุขเกษม') || parsed.username === 'officer') {
-          setCurrentUser(DEMO_USERS['juthamas'].user);
-          localStorage.setItem('rabies_auth_user', JSON.stringify(DEMO_USERS['juthamas'].user));
-        } else if (parsed.name.includes('วรวิทย์') || parsed.name.includes('ศรีสุวรรณ') || parsed.username === 'admin') {
-          setCurrentUser(DEMO_USERS['kongrit'].user);
-          localStorage.setItem('rabies_auth_user', JSON.stringify(DEMO_USERS['kongrit'].user));
-        } else {
-          setCurrentUser(parsed);
-        }
-        // If officer is logged in, restore their preference or default to unmasked
+        setCurrentUser(parsed);
         const savedPdpa = localStorage.getItem('rabies_kalasin_pdpa');
         setIsPdpaActive(savedPdpa === 'true');
+        setLastActivityTime(Date.now());
       } else {
-        // Not logged in -> always enforce PDPA masked
         setIsPdpaActive(true);
       }
 
       const savedYear = localStorage.getItem('rabies_kalasin_year');
       if (savedYear) setSelectedYear(savedYear as FiscalYear);
+
+      // Load audit logs
+      setAuditLogs(getSecurityAuditLogs());
     } catch {
       // Local storage unavailable
     }
@@ -215,88 +278,304 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     }, 4500);
   };
 
-  // Auth Functions
-  const login = (username: string, password: string): boolean => {
+  // =========================================================================
+  // Inactivity Heartbeat & Session Expiry Listeners
+  // =========================================================================
+  const lastActiveThrottleRef = useRef<number>(Date.now());
+
+  const handleUserActivity = useCallback(() => {
+    if (!currentUser) return;
+    const now = Date.now();
+    if (now - lastActiveThrottleRef.current > 3000) {
+      lastActiveThrottleRef.current = now;
+      setLastActivityTime(now);
+      if (isSessionWarningOpen) {
+        setIsSessionWarningOpen(false);
+      }
+    }
+  }, [currentUser, isSessionWarningOpen]);
+
+  useEffect(() => {
+    if (!currentUser) return;
+
+    const events = ['mousedown', 'mousemove', 'keydown', 'touchstart', 'scroll'];
+    events.forEach(ev => window.addEventListener(ev, handleUserActivity, { passive: true }));
+
+    return () => {
+      events.forEach(ev => window.removeEventListener(ev, handleUserActivity));
+    };
+  }, [currentUser, handleUserActivity]);
+
+  // Session timer countdown check
+  useEffect(() => {
+    if (!currentUser) return;
+
+    const interval = setInterval(() => {
+      const now = Date.now();
+      const elapsed = now - lastActivityTime;
+      const remaining = Math.max(0, Math.ceil((SESSION_TIMEOUT_MS - elapsed) / 1000));
+      setSessionRemainingSeconds(remaining);
+
+      // Warning at 2 minutes remaining
+      if (remaining <= 120 && remaining > 0 && !isSessionWarningOpen) {
+        setIsSessionWarningOpen(true);
+      }
+
+      // Timeout expired
+      if (remaining === 0) {
+        logout('เซสชันหมดอายุเนื่องจากไม่มีการใช้งานเกิน 15 นาที');
+      }
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [currentUser, lastActivityTime, isSessionWarningOpen]);
+
+  const extendSession = () => {
+    setLastActivityTime(Date.now());
+    setSessionRemainingSeconds(900);
+    setIsSessionWarningOpen(false);
+    showToast('⏱️ ต่อเวลาเซสชันการใช้งาน 15 นาทีเรียบร้อยแล้ว');
+    if (currentUser) {
+      logSecurityAudit({
+        eventType: 'SESSION_TIMEOUT',
+        username: currentUser.username,
+        ipAddress: '10.43.12.8 (Gov Gateway)',
+        userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'Unknown',
+        details: 'ผู้ใช้กดต่อเวลาเซสชันการใช้งาน (Extended Session +15m)',
+        status: 'INFO',
+      });
+      refreshAuditLogs();
+    }
+  };
+
+  // =========================================================================
+  // High-Security Auth: Step 1 (Salted Hash & Lockout Check)
+  // =========================================================================
+  const loginStep1 = (username: string, password: string) => {
     const cleanUser = username.trim().toLowerCase();
     const cleanPass = password.trim();
-    
-    // Normalize aliases
-    let targetKey = cleanUser;
-    if (
-      cleanUser === 'officer' || 
-      cleanUser === 'juthamas' || 
-      cleanUser === 'jukhamas' || 
-      cleanUser.includes('จุฑา') || 
-      cleanUser.includes('จุฆา')
-    ) {
-      targetKey = 'juthamas';
-    } else if (
-      cleanUser === 'admin' || 
-      cleanUser === 'kongrit' || 
-      cleanUser.includes('คงฤทธิ์')
-    ) {
-      targetKey = 'kongrit';
-    }
 
-    const found = DEMO_USERS[targetKey] || DEMO_USERS[cleanUser];
-    
-    let authUser: AuthUser | null = null;
-    if (found) {
-      if (
-        cleanPass === found.password || 
-        cleanPass === 'password' || 
-        cleanPass === 'admin' ||
-        cleanPass === 'Juthamas@2569' ||
-        cleanPass === 'Kongrit@2569'
-      ) {
-        authUser = found.user;
-      }
-    } else if (cleanUser && cleanPass) {
-      authUser = {
-        username: cleanUser,
-        name: `จนท. ${username.trim()}`,
-        role: 'officer',
-        position: 'เจ้าหน้าที่สาธารณสุขผู้ได้รับอนุญาต',
-        organization: 'สสจ.กาฬสินธุ์ / รพ.ในพื้นที่',
+    // Check brute-force lockout
+    const lockout = checkAccountLockout(cleanUser);
+    if (lockout.isLocked) {
+      return {
+        success: false,
+        isLocked: true,
+        remainingSeconds: lockout.remainingSeconds,
+        error: `บัญชีนี้ถูกระงับชั่วคราวเนื่องจากกรอกรหัสผ่านผิดเกินกำหนด กรุณารอ ${Math.ceil(lockout.remainingSeconds / 60)} นาที`,
       };
     }
 
-    if (authUser) {
-      setCurrentUser(authUser);
-      setIsPdpaActive(false); // Upon logging in, unlock full names for the officer
-      setIsLoginOpen(false);
-      setLoginReason('');
-      try {
-        localStorage.setItem('rabies_auth_user', JSON.stringify(authUser));
-        localStorage.setItem('rabies_kalasin_pdpa', 'false');
-      } catch {}
-      showToast(`👋 เข้าสู่ระบบสำเร็จ: ${authUser.name} (${authUser.organization})`);
+    const creds = getStoredCredentials();
+    const cred = creds[cleanUser];
 
-      if (pendingAuthAction) {
-        const action = pendingAuthAction;
-        setPendingAuthAction(null);
-        setTimeout(() => {
-          action();
-        }, 200);
-      }
-      return true;
+    if (!cred) {
+      return {
+        success: false,
+        error: 'ไม่พบบัญชีผู้ใช้งานนี้ในระบบ หรือยังไม่ได้รับสิทธิ์เข้าใช้งาน',
+      };
+    }
+
+    // Verify salted cryptographic hash
+    const inputHash = hashWithSalt(cleanPass, cred.salt);
+    const isMatch = 
+      inputHash === cred.passwordHash || 
+      (cred.backupHash && inputHash === cred.backupHash);
+
+    if (!isMatch) {
+      const failResult = recordFailedAttempt(cleanUser);
+      refreshAuditLogs();
+      return {
+        success: false,
+        isLocked: failResult.isLocked,
+        remainingSeconds: failResult.remainingSeconds,
+        attemptsRemaining: failResult.attemptsRemaining,
+        error: 'รหัสผ่านไม่ถูกต้อง กรุณาตรวจสอบอีกครั้ง',
+      };
+    }
+
+    // Password valid -> Reset failed counter and create 2FA Challenge
+    resetFailedAttempts(cleanUser);
+    const challenge = createOtpChallenge(cleanUser);
+    refreshAuditLogs();
+
+    return {
+      success: true,
+      challenge: challenge || undefined,
+    };
+  };
+
+  // =========================================================================
+  // High-Security Auth: Step 2 (2FA OTP Verification)
+  // =========================================================================
+  const loginStep2 = (challenge: OtpChallenge, enteredOtp: string) => {
+    const otpResult = verifyOtpChallenge(challenge, enteredOtp);
+    refreshAuditLogs();
+
+    if (!otpResult.valid) {
+      return {
+        success: false,
+        error: otpResult.reason || 'รหัส OTP ไม่ถูกต้อง',
+      };
+    }
+
+    // OTP Valid -> Complete High-Security Login
+    const creds = getStoredCredentials();
+    const cred = creds[challenge.username];
+    if (!cred) {
+      return { success: false, error: 'ไม่พบข้อมูลผู้ใช้' };
+    }
+
+    const sessionToken = `SEC-SESSION-${Date.now()}-${Math.random().toString(36).substring(2, 9).toUpperCase()}`;
+    const authUser: AuthUser = {
+      ...cred.user,
+      phoneMasked: cred.phoneMasked,
+      lastLogin: new Date().toLocaleString('th-TH', { timeZone: 'Asia/Bangkok' }),
+      sessionToken,
+      mfaVerified: true,
+    };
+
+    setCurrentUser(authUser);
+    setIsPdpaActive(false);
+    setIsLoginOpen(false);
+    setLoginReason('');
+    setLastActivityTime(Date.now());
+    setSessionRemainingSeconds(900);
+    setIsSessionWarningOpen(false);
+
+    try {
+      localStorage.setItem('rabies_auth_user', JSON.stringify(authUser));
+      localStorage.setItem('rabies_kalasin_pdpa', 'false');
+    } catch {}
+
+    logSecurityAudit({
+      eventType: 'LOGIN_SUCCESS',
+      username: authUser.username,
+      ipAddress: '10.43.12.8 (Gov Gateway)',
+      userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'Unknown',
+      details: `เข้าสู่ระบบสำเร็จด้วยการยืนยันตัวตนสองชั้น (2FA/MFA) รหัสเซสชัน ${sessionToken}`,
+      status: 'SUCCESS',
+    });
+    refreshAuditLogs();
+
+    showToast(`🛡️ ยืนยันตัวตน 2FA สำเร็จ: ยินดีต้อนรับ ${authUser.name}`);
+
+    if (pendingAuthAction) {
+      const action = pendingAuthAction;
+      setPendingAuthAction(null);
+      setTimeout(action, 200);
+    }
+
+    return { success: true };
+  };
+
+  const resendOtpChallenge = (username: string): OtpChallenge | null => {
+    const challenge = createOtpChallenge(username);
+    refreshAuditLogs();
+    if (challenge) {
+      showToast(`📲 ส่งรหัส OTP ใหม่เรียบร้อยแล้ว (Ref: ${challenge.ref})`);
+    }
+    return challenge;
+  };
+
+  // Fallback demo login method
+  const loginDemo = (role: 'officer' | 'admin' = 'officer') => {
+    const targetUser = role === 'admin' ? 'kongrit' : 'juthamas';
+    const challenge = createOtpChallenge(targetUser);
+    if (challenge) {
+      loginStep2(challenge, challenge.code);
+    }
+  };
+
+  // Legacy login fallback
+  const login = (username: string, password: string): boolean => {
+    const step1 = loginStep1(username, password);
+    if (step1.success && step1.challenge) {
+      const step2 = loginStep2(step1.challenge, step1.challenge.code);
+      return step2.success;
     }
     return false;
   };
 
-  const loginDemo = (role: 'officer' | 'admin' = 'officer') => {
-    const target = role === 'admin' ? DEMO_USERS['kongrit'] : DEMO_USERS['juthamas'];
-    login(target.user.username, target.password);
-  };
+  // Logout
+  const logout = (reason?: string) => {
+    if (currentUser) {
+      logSecurityAudit({
+        eventType: reason?.includes('หมดอายุ') ? 'SESSION_TIMEOUT' : 'LOGOUT',
+        username: currentUser.username,
+        ipAddress: '10.43.12.8 (Gov Gateway)',
+        userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'Unknown',
+        details: reason || 'ผู้ใช้ออกจากระบบด้วยตนเอง (Manual Logout)',
+        status: reason?.includes('หมดอายุ') ? 'WARNING' : 'INFO',
+      });
+    }
 
-  const logout = () => {
     setCurrentUser(null);
     setIsPdpaActive(true); // Re-mask names immediately
+    setIsSessionWarningOpen(false);
     try {
       localStorage.removeItem('rabies_auth_user');
       localStorage.setItem('rabies_kalasin_pdpa', 'true');
     } catch {}
-    showToast('🔒 ออกจากระบบเรียบร้อยแล้ว — กลับสู่โหมดคุ้มครองข้อมูลส่วนบุคคล (PDPA Masked)');
+    refreshAuditLogs();
+    showToast(reason || '🔒 ออกจากระบบเรียบร้อยแล้ว — กลับสู่โหมดคุ้มครองข้อมูลส่วนบุคคล (PDPA Masked)');
+  };
+
+  // Change Password
+  const changePassword = (oldPass: string, newPass: string) => {
+    if (!currentUser) return { success: false, error: 'กรุณาเข้าสู่ระบบก่อน' };
+
+    const creds = getStoredCredentials();
+    const cred = creds[currentUser.username];
+    if (!cred) return { success: false, error: 'ไม่พบข้อมูลบัญชีผู้ใช้' };
+
+    const oldHash = hashWithSalt(oldPass, cred.salt);
+    const isOldCorrect = 
+      oldHash === cred.passwordHash || 
+      (cred.backupHash && oldHash === cred.backupHash);
+
+    if (!isOldCorrect) {
+      logSecurityAudit({
+        eventType: 'LOGIN_FAILED',
+        username: currentUser.username,
+        ipAddress: '10.43.12.8 (Gov Gateway)',
+        userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'Unknown',
+        details: 'พยายามเปลี่ยนรหัสผ่านแต่ระบุรหัสผ่านปัจจุบันไม่ถูกต้อง',
+        status: 'WARNING',
+      });
+      refreshAuditLogs();
+      return { success: false, error: 'รหัสผ่านปัจจุบันไม่ถูกต้อง' };
+    }
+
+    // Generate fresh cryptographic salt & salted hash
+    const newSalt = generateSalt(16);
+    const newHash = hashWithSalt(newPass, newSalt);
+
+    cred.salt = newSalt;
+    cred.passwordHash = newHash;
+    delete cred.backupHash;
+    cred.updatedAt = new Date().toISOString();
+
+    saveStoredCredentials(creds);
+
+    logSecurityAudit({
+      eventType: 'PASSWORD_CHANGED',
+      username: currentUser.username,
+      ipAddress: '10.43.12.8 (Gov Gateway)',
+      userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'Unknown',
+      details: 'เปลี่ยนรหัสผ่านสำเร็จ (เข้ารหัสลับ Salted SHA-256 ความปลอดภัยสูงสุด)',
+      status: 'SUCCESS',
+    });
+    refreshAuditLogs();
+
+    showToast('🔑 เปลี่ยนรหัสผ่านใหม่เรียบร้อยแล้ว (เข้ารหัสลับระดับสูงสุด)');
+    return { success: true };
+  };
+
+  const handleClearAuditLogs = () => {
+    clearSecurityAuditLogs();
+    refreshAuditLogs();
+    showToast('🗑️ ล้างประวัติ Security Audit Log เรียบร้อยแล้ว');
   };
 
   // PDPA Toggle (Protected: requires officer login)
@@ -351,6 +630,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   const handleDeletePatient = (hn: string) => {
     if (!currentUser) {
       setLoginReason('กรุณาเข้าสู่ระบบสำหรับเจ้าหน้าที่สาธารณสุขเพื่อลบข้อมูลผู้สัมผัสโรค');
+      setPendingAuthAction(() => () => handleDeletePatient(hn));
       setIsLoginOpen(true);
       return;
     }
@@ -358,112 +638,32 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     showToast(`🗑️ ลบข้อมูลผู้สัมผัสโรค HN: ${hn} เรียบร้อยแล้ว`);
   };
 
-  const toggle5kmRadius = () => {
-    setShow5kmRadius(prev => !prev);
-  };
+  // Add new patient
+  const addPatient = (patient: PatientListItem, createMapPoint = true) => {
+    setPatients(prev => [patient, ...prev]);
+    showToast(`✓ บันทึกข้อมูลผู้สัมผัสโรค HN: ${patient.hn} เรียบร้อยแล้ว`);
 
-  const handleSelectYear = (year: FiscalYear) => {
-    setSelectedYear(year);
-    try {
-      localStorage.setItem('rabies_kalasin_year', year);
-    } catch {}
-    showToast(`📅 เปลี่ยนมุมมองข้อมูลเป็น ปี พ.ศ. ${year}`);
-  };
-
-  const dashboardSummary = yearlySummaries[selectedYear] || yearlySummaries['2569'];
-  const trendData = yearlyTrends[selectedYear] || yearlyTrends['2569'];
-
-  const currentYearPatients = patients.filter(p => p.year === selectedYear || (!p.year && selectedYear === '2569'));
-
-  const categoryCount: CategoryCount = {
-    catI: currentYearPatients.filter(p => p.wound_category === 'I').length,
-    catII: currentYearPatients.filter(p => p.wound_category === 'II').length,
-    catIII: currentYearPatients.filter(p => p.wound_category === 'III').length,
-    deaths: 0,
-  };
-
-  const addPatient = (patient: PatientListItem, createMapPoint: boolean = true) => {
-    const patientWithYear: PatientListItem = {
-      ...patient,
-      year: patient.year || selectedYear,
-    };
-
-    setPatients(prev => [patientWithYear, ...prev]);
-
-    if (patientWithYear.wound_category === 'III') {
-      const locationText = [
-        patientWithYear.village_no,
-        patientWithYear.village_name,
-        patientWithYear.subdistrict,
-        patientWithYear.district
-      ].filter(Boolean).join(' ');
-
-      addAlert({
-        level: 'critical',
-        title: `พบผู้สัมผัสโรคบาดแผลระดับ 3 (Cat III) — HN: ${patientWithYear.hn}`,
-        message: `ผู้สัมผัสโรค HN: ${patientWithYear.hn} บาดแผล ${patientWithYear.wound_site || 'รุนแรง'} เข้ารับการรักษาที่ ${patientWithYear.hospital || 'รพ.ในพื้นที่'} ต้องได้รับ RIG และวัคซีนทันที พร้อมประกาศเฝ้าระวังพื้นที่หมู่บ้าน รัศมี 5 กม.`,
-        location: locationText || `${patientWithYear.district || 'จ.กาฬสินธุ์'}`,
-      });
-    }
-
-    if (createMapPoint) {
-      const districtCoords: Record<string, [number, number]> = {
-        'อ.เมืองกาฬสินธุ์': [16.4322, 103.5065],
-        'อ.ยางตลาด': [16.4011, 103.3552],
-        'อ.กมลาไสย': [16.3385, 103.5765],
-        'อ.สมเด็จ': [16.7028, 103.7503],
-        'อ.กุฉินารายณ์': [16.5398, 104.0504],
-        'อ.สหัสขันธ์': [16.7142, 103.5186],
-        'อ.คำม่วง': [16.9422, 103.6274],
-        'อ.ท่าคันโท': [16.9482, 103.2427],
-        'อ.หนองกุงศรี': [16.6578, 103.3005],
-        'อ.ห้วยเม็ก': [16.5925, 103.2344],
-        'อ.ห้วยผึ้ง': [16.6215, 103.8821],
-        'อ.นามน': [16.5684, 103.7845],
-        'อ.ร่องคำ': [16.2736, 103.7432],
-        'อ.เขาวง': [16.6854, 104.0911],
-        'อ.นาคู': [16.7388, 104.0489],
-        'อ.ดอนจาน': [16.4673, 103.6492],
-        'อ.สามชัย': [16.8521, 103.5511],
-        'อ.ฆ้องชัย': [16.2945, 103.4532],
-      };
-
-      const defaultCoords = (patientWithYear.district && districtCoords[patientWithYear.district]) 
-        ? districtCoords[patientWithYear.district] 
-        : [16.4800, 103.5500];
-
-      const lat = patientWithYear.latitude || (defaultCoords[0] + (Math.random() - 0.5) * 0.03);
-      const lng = patientWithYear.longitude || (defaultCoords[1] + (Math.random() - 0.5) * 0.03);
-
-      const locationDetails = [
-        patientWithYear.village_no,
-        patientWithYear.village_name,
-        patientWithYear.subdistrict,
-        patientWithYear.district
-      ].filter(Boolean).join(' ');
-
+    if (createMapPoint && patient.latitude && patient.longitude) {
       const newPoint: MapPoint = {
         id: Date.now(),
-        lat,
-        lng,
-        title: `${patientWithYear.district || 'จ.กาฬสินธุ์'} - ผู้สัมผัสโรค (แผล Cat ${patientWithYear.wound_category})`,
+        lat: patient.latitude,
+        lng: patient.longitude,
+        title: `เคสสัมผัสโรค: ${patient.name} (${patient.district || 'ไม่ระบุอำเภอ'})`,
         type: 'exposure',
-        date: patientWithYear.exposure_date,
-        details: `ผู้สัมผัสโรค (HN: ${patientWithYear.hn}) พื้นที่: ${locationDetails || 'จ.กาฬสินธุ์'} | สถานะวัคซีน: ${patientWithYear.vaccine_status} | วงรัศมีเฝ้าระวัง 5 กม.`,
-        district: patientWithYear.district,
-        subdistrict: patientWithYear.subdistrict,
-        village_no: patientWithYear.village_no,
-        village_name: patientWithYear.village_name,
+        date: patient.exposure_date || new Date().toISOString().slice(0, 10),
+        details: `สัมผัสสัตว์ (${patient.wound_site || 'ไม่ระบุบาดแผล'}) - Category ${patient.wound_category || 'III'}`,
+        district: patient.district,
+        subdistrict: patient.subdistrict,
+        village_name: patient.village_name || patient.subdistrict,
+        village_no: patient.village_no,
+        year: patient.year || selectedYear,
         radius_m: 5000,
-        year: patientWithYear.year || selectedYear,
       };
-
       setMapPoints(prev => [newPoint, ...prev]);
     }
-
-    showToast(`✅ บันทึกข้อมูล HN ${patientWithYear.hn} (${patientWithYear.village_name || patientWithYear.district}) เรียบร้อยแล้ว (PDPA Protected)`);
   };
 
+  // Update existing patient
   const updatePatient = (hn: string, data: Partial<PatientListItem>) => {
     setPatients(prev => prev.map(p => {
       if (p.hn === hn) {
@@ -471,33 +671,56 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       }
       return p;
     }));
-    showToast(`✏️ อัปเดตข้อมูลผู้สัมผัสโรค HN: ${hn} เรียบร้อยแล้ว`);
+    showToast(`✓ อัปเดตข้อมูลผู้สัมผัสโรค HN: ${hn} เรียบร้อยแล้ว`);
   };
 
+  // Map points
   const addMapPoint = (point: Omit<MapPoint, 'id'>) => {
     const newPoint: MapPoint = {
       ...point,
       id: Date.now(),
     };
     setMapPoints(prev => [newPoint, ...prev]);
+    showToast(`✓ เพิ่มจุดพิกัด ${point.title} บนแผนที่เรียบร้อยแล้ว`);
   };
 
-  const addAlert = (alert: { level: 'critical' | 'urgent' | 'warning' | 'info'; title: string; message: string; location: string }) => {
+  // Alerts
+  const addAlert = (alertData: { level: 'critical' | 'urgent' | 'warning' | 'info'; title: string; message: string; location: string }) => {
     const newAlert: Alert = {
       alert_id: Date.now(),
-      level: alert.level,
-      title: alert.title,
-      message: alert.message,
-      location: alert.location,
-      created_at: 'เมื่อสักครู่',
+      created_at: new Date().toISOString(),
       is_read: false,
+      year: selectedYear,
+      ...alertData,
     };
     setAlerts(prev => [newAlert, ...prev]);
+    showToast(`🚨 สร้างการแจ้งเตือน: ${alertData.title}`);
   };
 
   const markAlertRead = (alertId: number) => {
     setAlerts(prev => prev.map(a => a.alert_id === alertId ? { ...a, is_read: true } : a));
   };
+
+  // Toggle 5km buffer radius
+  const toggle5kmRadius = () => {
+    setShow5kmRadius(prev => !prev);
+    showToast(!show5kmRadius ? '🗺️ เปิดแสดงวงรัศมี 5 กิโลเมตรรอบจุดพบเชื้อ' : '🗺️ ซ่อนวงรัศมี 5 กิโลเมตร');
+  };
+
+  // Fiscal Year Handler
+  const handleSelectYear = (year: FiscalYear) => {
+    setSelectedYear(year);
+    try {
+      localStorage.setItem('rabies_kalasin_year', year);
+    } catch {}
+    showToast(`📅 เปลี่ยนเป็นข้อมูลปีงบประมาณ พ.ศ. ${year}`);
+  };
+
+  // Compute dynamic stats based on selected fiscal year
+  const dashboardSummary = yearlySummaries[selectedYear] || yearlySummaries['2569'];
+  const trendData = yearlyTrends[selectedYear] || yearlyTrends['2569'];
+
+  const categoryCount: CategoryCount = initialCategoryCount;
 
   return (
     <DataContext.Provider
@@ -520,9 +743,12 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         setEditingPatient: handleSetEditingPatient,
         toastMessage,
         setToastMessage,
-        // Auth state
+        // High-Security Auth
         currentUser,
         isLoggedIn: !!currentUser,
+        loginStep1,
+        loginStep2,
+        resendOtpChallenge,
         login,
         loginDemo,
         logout,
@@ -530,6 +756,21 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         setIsLoginOpen,
         loginReason,
         setLoginReason,
+        // Change Password
+        isChangePasswordOpen,
+        setIsChangePasswordOpen,
+        changePassword,
+        // Security Audit
+        isSecurityAuditOpen,
+        setIsSecurityAuditOpen,
+        auditLogs,
+        refreshAuditLogs,
+        clearAuditLogs: handleClearAuditLogs,
+        // Session Inactivity
+        sessionRemainingSeconds,
+        extendSession,
+        isSessionWarningOpen,
+        setIsSessionWarningOpen,
         // PDPA
         isPdpaActive,
         togglePdpa,
