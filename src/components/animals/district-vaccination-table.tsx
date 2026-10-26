@@ -1,9 +1,11 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { LayoutGrid, Table as TableIcon, ShieldCheck, AlertTriangle } from 'lucide-react';
+import { useData } from '@/context/data-context';
+import { Button } from '@/components/ui/button';
 
 interface DistrictVaccinationData {
   district: string;
@@ -18,7 +20,13 @@ interface DistrictVaccinationTableProps {
 }
 
 export function DistrictVaccinationTable({ data }: DistrictVaccinationTableProps) {
+  const { selectedDistrict, setSelectedDistrict, selectedDistrictName, isDistrictMatch } = useData();
   const [mobileView, setMobileView] = useState<'cards' | 'table'>('cards');
+
+  const filteredData = useMemo(() => {
+    if (selectedDistrict === 'all') return data;
+    return data.filter(d => isDistrictMatch(d.district));
+  }, [data, selectedDistrict, isDistrictMatch]);
 
   return (
     <div className="space-y-3">
@@ -26,7 +34,7 @@ export function DistrictVaccinationTable({ data }: DistrictVaccinationTableProps
       <div className="flex items-center justify-between gap-2 pb-2 border-b border-slate-100 md:hidden">
         <div className="text-[11px] text-slate-500 font-medium flex items-center gap-1">
           <ShieldCheck size={13} className="text-emerald-600" />
-          <span>ผลการฉีดวัคซีน 18 อำเภอ</span>
+          <span>ผลการฉีดวัคซีน {selectedDistrict === 'all' ? '18 อำเภอ' : selectedDistrictName}</span>
         </div>
         <div className="flex items-center gap-1 bg-slate-100 p-0.5 rounded-lg text-xs">
           <button
@@ -59,7 +67,12 @@ export function DistrictVaccinationTable({ data }: DistrictVaccinationTableProps
       {/* 1. Mobile Card List View (< md) - พอดีหน้าจอ 100% ไม่ต้องเลื่อนขวา */}
       {mobileView === 'cards' && (
         <div className="md:hidden space-y-2">
-          {data.map((row) => {
+          {filteredData.length === 0 ? (
+            <div className="p-4 text-center text-xs text-muted-foreground bg-slate-50 rounded-xl border border-dashed border-slate-200">
+              ไม่มีรายงานข้อมูลสถิติของ {selectedDistrictName}
+            </div>
+          ) : (
+            filteredData.map((row) => {
             const isSafe = row.coverage >= 80;
             const isWarning = row.coverage >= 70 && row.coverage < 80;
 
@@ -111,7 +124,7 @@ export function DistrictVaccinationTable({ data }: DistrictVaccinationTableProps
                 </div>
               </div>
             );
-          })}
+          }))}
         </div>
       )}
 
@@ -128,7 +141,14 @@ export function DistrictVaccinationTable({ data }: DistrictVaccinationTableProps
             </TableRow>
           </TableHeader>
           <TableBody>
-            {data.map((row) => {
+            {filteredData.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={5} className="text-center py-6 text-xs text-muted-foreground">
+                  ไม่มีรายงานข้อมูลสถิติของ {selectedDistrictName}
+                </TableCell>
+              </TableRow>
+            ) : (
+              filteredData.map((row) => {
               const isSafe = row.coverage >= 80;
               const isWarning = row.coverage >= 70 && row.coverage < 80;
 
@@ -175,7 +195,7 @@ export function DistrictVaccinationTable({ data }: DistrictVaccinationTableProps
                   </TableCell>
                 </TableRow>
               );
-            })}
+            }))}
           </TableBody>
         </Table>
       </div>

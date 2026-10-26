@@ -14,6 +14,8 @@ import {
   SelectValue 
 } from '@/components/ui/select';
 import { Alert } from '@/types';
+import { useData } from '@/context/data-context';
+import { kalasinDistricts, kalasinDistrictMap } from '@/lib/mock-data';
 import { 
   Search, 
   FileText, 
@@ -35,9 +37,13 @@ interface PositiveAnimalTableProps {
 }
 
 export function PositiveAnimalTable({ alerts, onOpenPdf, onShareLine }: PositiveAnimalTableProps) {
+  const { selectedDistrict, setSelectedDistrict, isDistrictMatch } = useData();
   const [search, setSearch] = useState('');
   const [speciesFilter, setSpeciesFilter] = useState('all');
-  const [districtFilter, setDistrictFilter] = useState('all');
+
+  const districtAlertsCount = useMemo(() => alerts.filter(a => isDistrictMatch(a.district)).length, [alerts, isDistrictMatch]);
+  const dogCount = useMemo(() => alerts.filter(a => a.animal_species === 'สุนัข' && isDistrictMatch(a.district)).length, [alerts, isDistrictMatch]);
+  const cowCount = useMemo(() => alerts.filter(a => a.animal_species === 'โค' && isDistrictMatch(a.district)).length, [alerts, isDistrictMatch]);
 
   // Filter 32 animal heads
   const filteredAlerts = useMemo(() => {
@@ -53,13 +59,13 @@ export function PositiveAnimalTable({ alerts, onOpenPdf, onShareLine }: Positive
       if (speciesFilter === 'dog' && alert.animal_species !== 'สุนัข') return false;
       if (speciesFilter === 'cow' && alert.animal_species !== 'โค') return false;
 
-      if (districtFilter !== 'all' && !alert.district?.includes(districtFilter)) {
+      if (!isDistrictMatch(alert.district)) {
         return false;
       }
 
       return true;
     });
-  }, [alerts, search, speciesFilter, districtFilter]);
+  }, [alerts, search, speciesFilter, isDistrictMatch]);
 
   // Export CSV function with UTF-8 BOM for Thai support in Excel
   const handleExportCsv = () => {
@@ -160,46 +166,37 @@ export function PositiveAnimalTable({ alerts, onOpenPdf, onShareLine }: Positive
             value={speciesFilter} 
             onValueChange={(val) => setSpeciesFilter(val || 'all')}
             items={{
-              all: 'ชนิดสัตว์: ทั้งหมด (32)',
-              dog: 'สุนัข (31)',
-              cow: '🐄 โค/วัว (1)',
+              all: `ชนิดสัตว์: ทั้งหมด (${districtAlertsCount})`,
+              dog: `สุนัข (${dogCount})`,
+              cow: `🐄 โค/วัว (${cowCount})`,
             }}
           >
             <SelectTrigger className="h-8 text-xs w-full">
               <SelectValue placeholder="ชนิดสัตว์" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">ชนิดสัตว์ทั้งหมด (32)</SelectItem>
-              <SelectItem value="dog">สุนัข (31)</SelectItem>
-              <SelectItem value="cow">🐄 โค/วัว (1)</SelectItem>
+              <SelectItem value="all">ชนิดสัตว์ทั้งหมด ({districtAlertsCount})</SelectItem>
+              <SelectItem value="dog">สุนัข ({dogCount})</SelectItem>
+              <SelectItem value="cow">🐄 โค/วัว ({cowCount})</SelectItem>
             </SelectContent>
           </Select>
 
           {/* District Filter */}
           <Select 
-            value={districtFilter} 
-            onValueChange={(val) => setDistrictFilter(val || 'all')}
-            items={{
-              all: 'อำเภอ: ทุกอำเภอที่พบเชื้อ',
-              'ยางตลาด': 'อ.ยางตลาด (13 หัว)',
-              'เมือง': 'อ.เมืองกาฬสินธุ์ (8 หัว)',
-              'หนองกุงศรี': 'อ.หนองกุงศรี (7 หัว)',
-              'กมลาไสย': 'อ.กมลาไสย (1 หัว - สีแดง)',
-              'ห้วยเม็ก': 'อ.ห้วยเม็ก (2 หัว)',
-              'กุฉินารายณ์': 'อ.กุฉินารายณ์ (1 หัว)',
-            }}
+            value={selectedDistrict} 
+            onValueChange={(val) => setSelectedDistrict(val || 'all')}
+            items={kalasinDistrictMap}
           >
             <SelectTrigger className="h-8 text-xs w-full">
               <SelectValue placeholder="อำเภอ" />
             </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">ทุกอำเภอที่พบเชื้อ</SelectItem>
-              <SelectItem value="ยางตลาด">อ.ยางตลาด (13 หัว)</SelectItem>
-              <SelectItem value="เมือง">อ.เมืองกาฬสินธุ์ (8 หัว)</SelectItem>
-              <SelectItem value="หนองกุงศรี">อ.หนองกุงศรี (7 หัว)</SelectItem>
-              <SelectItem value="กมลาไสย">อ.กมลาไสย (1 หัว - สีแดง)</SelectItem>
-              <SelectItem value="ห้วยเม็ก">อ.ห้วยเม็ก (2 หัว)</SelectItem>
-              <SelectItem value="กุฉินารายณ์">อ.กุฉินารายณ์ (1 หัว)</SelectItem>
+            <SelectContent className="max-h-56">
+              <SelectItem value="all">ทุกอำเภอ (จ.กาฬสินธุ์)</SelectItem>
+              {kalasinDistricts.filter(d => d.id !== 'all').map(d => (
+                <SelectItem key={d.id} value={d.id}>
+                  {d.name}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>

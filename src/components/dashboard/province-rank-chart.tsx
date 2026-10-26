@@ -12,17 +12,40 @@ import {
   ResponsiveContainer
 } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { yearlyProvinceRankData } from '@/lib/mock-data';
+import { yearlyProvinceRankData, kalasinSubdistricts } from '@/lib/mock-data';
 import { useData } from '@/context/data-context';
 import { HelpCircle } from 'lucide-react';
 
 type ViewMode = 'all' | 'animals' | 'patients';
 
 export default function ProvinceRankChart() {
-  const { selectedYear } = useData();
+  const { selectedYear, selectedDistrict, selectedDistrictName, isDistrictMatch, patients, alerts } = useData();
   const [viewMode, setViewMode] = useState<ViewMode>('all');
 
-  const currentRankData = yearlyProvinceRankData[selectedYear] || [];
+  const currentRankData = useMemo(() => {
+    if (selectedDistrict === 'all') {
+      return yearlyProvinceRankData[selectedYear] || [];
+    }
+
+    // Drill down to subdistricts in this selected district!
+    const subList = kalasinSubdistricts[selectedDistrictName] || [];
+    const districtAlerts = alerts.filter(a => (!a.year || a.year === selectedYear) && isDistrictMatch(a.district));
+    const districtPatients = patients.filter(p => (p.year === selectedYear || (!p.year && selectedYear === '2569')) && isDistrictMatch(p.district));
+
+    const result = subList.map(sub => {
+      const cleanSub = sub.replace(/^ต\./, '').trim();
+      const posCount = districtAlerts.filter(a => a.subdistrict?.includes(cleanSub) || a.location?.includes(cleanSub)).length;
+      const expCount = districtPatients.filter(p => p.subdistrict?.includes(cleanSub) || p.village_name?.includes(cleanSub)).length;
+      return {
+        province: sub,
+        cases: posCount + expCount,
+        positiveAnimals: posCount,
+        exposures: expCount,
+      };
+    });
+
+    return result.filter(r => r.cases > 0);
+  }, [selectedYear, selectedDistrict, selectedDistrictName, isDistrictMatch, alerts, patients]);
 
   // Sort data based on selected view mode
   const sortedData = useMemo(() => {
@@ -37,16 +60,24 @@ export default function ProvinceRankChart() {
     return copy.sort((a, b) => b.cases - a.cases);
   }, [currentRankData, viewMode]);
 
+  const totalCases = useMemo(() => currentRankData.reduce((acc, c) => acc + (c.cases || 0), 0), [currentRankData]);
+  const totalAnimals = useMemo(() => currentRankData.reduce((acc, c) => acc + (c.positiveAnimals || 0), 0), [currentRankData]);
+  const totalExposures = useMemo(() => currentRankData.reduce((acc, c) => acc + (c.exposures || 0), 0), [currentRankData]);
+
   return (
     <Card className="w-full h-full flex flex-col justify-between">
       <CardHeader className="pb-2 p-3.5 sm:p-5">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div>
             <CardTitle className="text-base sm:text-lg flex items-center gap-2">
-              <span>📊 การกระจายรายอำเภอ (จ.กาฬสินธุ์)</span>
+              <span>{selectedDistrict === 'all' ? '📊 การกระจายรายอำเภอ (จ.กาฬสินธุ์)' : `📊 การกระจายรายตำบล (${selectedDistrictName})`}</span>
             </CardTitle>
             <CardDescription className="text-xs mt-0.5">
-              แยกตาม <strong>🔴 สัตว์ตรวจพบเชื้อ (Lab +)</strong> และ <strong>🔵 ผู้สัมผัสโรค (PEP)</strong>
+              {selectedDistrict === 'all' ? (
+                <>แยกตาม <strong>🔴 สัตว์ตรวจพบเชื้อ (Lab +)</strong> และ <strong>🔵 ผู้สัมผัสโรค (PEP)</strong></>
+              ) : (
+                <>เจาะลึกเฉพาะพื้นที่ <strong>{selectedDistrictName}</strong> แยกตามตำบล</>
+              )}
             </CardDescription>
           </div>
 
@@ -61,7 +92,7 @@ export default function ProvinceRankChart() {
                   : 'text-slate-600 hover:text-slate-900'
               }`}
             >
-              รวมทั้งหมด (165)
+              รวมทั้งหมด ({totalCases})
             </button>
             <button
               type="button"
@@ -73,7 +104,7 @@ export default function ProvinceRankChart() {
               }`}
             >
               <span className="w-2 h-2 rounded-full bg-red-500 inline-block"></span>
-              สัตว์พบเชื้อ (32)
+              สัตว์พบเชื้อ ({totalAnimals})
             </button>
             <button
               type="button"
@@ -85,7 +116,7 @@ export default function ProvinceRankChart() {
               }`}
             >
               <span className="w-2 h-2 rounded-full bg-blue-500 inline-block"></span>
-              ผู้สัมผัสโรค (133)
+              ผู้สัมผัสโรค ({totalExposures})
             </button>
           </div>
         </div>

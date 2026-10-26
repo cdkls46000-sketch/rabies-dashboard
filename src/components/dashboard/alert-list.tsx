@@ -27,7 +27,7 @@ import {
 } from 'lucide-react';
 
 export default function AlertList() {
-  const { alerts, setToastMessage } = useData();
+  const { alerts, setToastMessage, selectedDistrict, selectedDistrictName, isDistrictMatch } = useData();
   const [filterMode, setFilterMode] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [showAll, setShowAll] = useState<boolean>(false);
@@ -38,6 +38,9 @@ export default function AlertList() {
   // Filter alerts by district or recent 1 month
   const filteredAlerts = useMemo(() => {
     return alerts.filter((alert) => {
+      // Global district filter
+      if (!isDistrictMatch(alert.district)) return false;
+
       const matchSearch = 
         alert.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         alert.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -53,7 +56,7 @@ export default function AlertList() {
       }
       return true;
     });
-  }, [alerts, filterMode, searchQuery]);
+  }, [alerts, filterMode, searchQuery, isDistrictMatch]);
 
   const recentCount = alerts.filter(a => a.is_recent_1_month).length;
   const displayAlerts = showAll ? filteredAlerts : filteredAlerts.slice(0, 5);

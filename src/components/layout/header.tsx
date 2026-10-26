@@ -50,6 +50,9 @@ export function Header() {
     togglePdpa,
     selectedYear,
     setSelectedYear,
+    selectedDistrict,
+    setSelectedDistrict,
+    selectedDistrictName,
     toggleMobileSidebar,
     currentUser,
     isLoggedIn,
@@ -183,16 +186,18 @@ export function Header() {
           <span>บันทึกเคสใหม่</span>
         </Button>
 
-        {/* District selector for Kalasin (Desktop only) */}
-        <div className="hidden lg:flex items-center gap-2">
+        {/* District selector for Kalasin (Synchronized across all pages & devices) */}
+        <div className="flex items-center gap-0.5 sm:gap-1 bg-slate-100/90 hover:bg-slate-100 p-0.5 sm:p-1 rounded-md border border-slate-200">
+          <MapPin className="w-3.5 h-3.5 text-blue-600 ml-0.5 shrink-0 hidden xs:inline" />
           <Select 
-            defaultValue="all"
+            value={selectedDistrict}
+            onValueChange={(val) => { if (val) setSelectedDistrict(val); }}
             items={kalasinDistrictMap}
           >
-            <SelectTrigger className="w-[150px] h-8 text-xs">
-              <SelectValue placeholder="อำเภอ" />
+            <SelectTrigger className="h-6 sm:h-7 w-[92px] xs:w-[110px] sm:w-[130px] md:w-[150px] text-[11px] sm:text-xs font-bold bg-white text-slate-800 border-slate-200 shadow-none px-1 sm:px-1.5 truncate">
+              <SelectValue placeholder="เลือกอำเภอ" />
             </SelectTrigger>
-            <SelectContent className="max-h-60">
+            <SelectContent className="max-h-64">
               {kalasinDistricts.map((d) => (
                 <SelectItem key={d.id} value={d.id}>
                   {d.name}

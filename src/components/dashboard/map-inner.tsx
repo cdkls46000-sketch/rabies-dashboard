@@ -1,10 +1,42 @@
 'use client';
 
 import { useEffect, Fragment } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, Circle } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Circle, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { useData } from '@/context/data-context';
+import { kalasinDistricts } from '@/lib/mock-data';
+
+// District Centers for auto-zoom & panning
+const districtCenters: Record<string, [number, number]> = {
+  all: [16.5800, 103.5800],
+  muang: [16.4322, 103.5068],
+  yangtalat: [16.4020, 103.3550],
+  kamalasai: [16.3380, 103.5780],
+  somdet: [16.7020, 103.7480],
+  kuchinarai: [16.5380, 104.0520],
+  sahatsakhan: [16.7150, 103.5220],
+  khammuang: [16.8920, 103.6380],
+  thakantho: [16.8520, 103.2380],
+  nongkungsi: [16.6520, 103.3080],
+  huaimek: [16.5920, 103.1880],
+  huaiphueng: [16.6120, 103.8880],
+  namon: [16.5680, 103.7880],
+  rongkham: [16.2780, 103.7180],
+  khaowong: [16.6880, 104.0880],
+  nakhu: [16.7480, 104.0380],
+  donchan: [16.4880, 103.6580],
+  samchai: [16.9480, 103.5280],
+  khongchai: [16.2680, 103.5480],
+};
+
+function MapFlyController({ center, zoom }: { center: [number, number]; zoom: number }) {
+  const map = useMap();
+  useEffect(() => {
+    map.flyTo(center, zoom, { duration: 1.2 });
+  }, [center, zoom, map]);
+  return null;
+}
 
 // Fix for default marker icons in React Leaflet
 const iconUrl = 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png';
@@ -39,7 +71,7 @@ const iconSuspect = getIcon('#f59e0b'); // amber
 const iconExposure = getIcon('#3b82f6'); // blue
 
 export default function MapInner() {
-  const { mapPoints, show5kmRadius, selectedYear } = useData();
+  const { mapPoints, show5kmRadius, selectedYear, selectedDistrict, isDistrictMatch } = useData();
 
   useEffect(() => {
     delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -50,15 +82,24 @@ export default function MapInner() {
     });
   }, []);
 
-  // Filter map points by selected fiscal year
-  const displayPoints = mapPoints.filter(p => p.year === selectedYear || (!p.year && selectedYear === '2569'));
+  // Filter map points by selected fiscal year AND district
+  const displayPoints = mapPoints.filter(p => {
+    const matchYear = p.year === selectedYear || (!p.year && selectedYear === '2569');
+    const matchDistrict = isDistrictMatch(p.district);
+    return matchYear && matchDistrict;
+  });
+
+  // Calculate center and zoom based on selectedDistrict
+  const centerCoord = districtCenters[selectedDistrict] || districtCenters['all'];
+  const zoomLevel = selectedDistrict === 'all' ? 9 : 11;
 
   return (
     <MapContainer 
-      center={[16.5800, 103.5800]} 
-      zoom={9} 
+      center={centerCoord} 
+      zoom={zoomLevel} 
       style={{ height: '100%', width: '100%', borderRadius: '0.375rem' }}
     >
+      <MapFlyController center={centerCoord} zoom={zoomLevel} />
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"

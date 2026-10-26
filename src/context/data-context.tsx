@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { 
   PatientListItem, 
   MapPoint, 
@@ -17,9 +17,24 @@ import {
   alerts as initialAlerts, 
   yearlySummaries,
   yearlyTrends,
-  categoryCount as initialCategoryCount 
+  categoryCount as initialCategoryCount,
+  kalasinDistricts,
+  districtVaccinationData
 } from '@/lib/mock-data';
 import { maskThaiName } from '@/lib/pdpa';
+
+export const isDistrictMatch = (itemDistrict?: string, filterDistrict?: string): boolean => {
+  if (!filterDistrict || filterDistrict === 'all') return true;
+  if (!itemDistrict) return false;
+
+  const found = kalasinDistricts.find(d => d.id === filterDistrict || d.name === filterDistrict);
+  const targetName = found ? found.name : filterDistrict;
+
+  const cleanTarget = targetName.replace(/^อ\./, '').trim();
+  const cleanItem = itemDistrict.replace(/^อ\./, '').trim();
+
+  return cleanItem.includes(cleanTarget) || cleanTarget.includes(cleanItem);
+};
 import {
   hashWithSalt,
   generateSalt,
@@ -150,6 +165,12 @@ interface DataContextType {
   togglePdpa: () => void;
   getDisplayName: (name: string) => string;
 
+  // District Filter
+  selectedDistrict: string;
+  setSelectedDistrict: (district: string) => void;
+  selectedDistrictName: string;
+  isDistrictMatch: (itemDistrict?: string) => boolean;
+
   // Fiscal Years
   selectedYear: FiscalYear;
   setSelectedYear: (year: FiscalYear) => void;
@@ -198,6 +219,9 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   // ปี พ.ศ. 2568 - 2571 (เริ่มต้นที่ 2569 ปัจจุบัน)
   const [selectedYear, setSelectedYear] = useState<FiscalYear>('2569');
 
+  // ตัวกรองอำเภอ (ค่าเริ่มต้น: 'all' = ทุกอำเภอ)
+  const [selectedDistrict, setSelectedDistrict] = useState<string>('all');
+
   // วงรัศมี 5 กิโลเมตร
   const [show5kmRadius, setShow5kmRadius] = useState<boolean>(true);
 
@@ -244,6 +268,9 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
 
       const savedYear = localStorage.getItem('rabies_kalasin_year');
       if (savedYear) setSelectedYear(savedYear as FiscalYear);
+
+      const savedDistrict = localStorage.getItem('rabies_kalasin_district');
+      if (savedDistrict) setSelectedDistrict(savedDistrict);
 
       // Load audit logs
       setAuditLogs(getSecurityAuditLogs());
@@ -716,11 +743,127 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     showToast(`📅 เปลี่ยนเป็นข้อมูลปีงบประมาณ พ.ศ. ${year}`);
   };
 
-  // Compute dynamic stats based on selected fiscal year
-  const dashboardSummary = yearlySummaries[selectedYear] || yearlySummaries['2569'];
-  const trendData = yearlyTrends[selectedYear] || yearlyTrends['2569'];
+  // District Filter Handler
+  const handleSelectDistrict = (district: string) => {
+    setSelectedDistrict(district);
+    try {
+      localStorage.setItem('rabies_kalasin_district', district);
+    } catch {}
+    const distObj = kalasinDistricts.find(d => d.id === district || d.name === district);
+    const name = distObj ? distObj.name : district;
+    showToast(district === 'all' ? '📍 แสดงข้อมูลภาพรวมทุกอำเภอ (จ.กาฬสินธุ์)' : `📍 กรองข้อมูลเฉพาะ: ${name}`);
+  };
 
-  const categoryCount: CategoryCount = initialCategoryCount;
+  const selectedDistrictName = useMemo(() => {
+    if (selectedDistrict === 'all') return 'ทุกอำเภอ (จ.กาฬสินธุ์)';
+    const dist = kalasinDistricts.find(d => d.id === selectedDistrict || d.name === selectedDistrict);
+    return dist ? dist.name : selectedDistrict;
+  }, [selectedDistrict]);
+
+  // Dynamic filter for patients by selectedYear and selectedDistrict
+  const filteredPatientsByYearAndDistrict = useMemo(() => {
+    return patients.filter((p: PatientListItem) => {
+      const matchYear = p.year === selectedYear || (!p.year && selectedYear === '2569');
+      const matchDistrict = isDistrictMatch(p.district, selectedDistrict);
+      return matchYear && matchDistrict;
+    });
+  }, [patients, selectedYear, selectedDistrict]);
+
+  // Dynamic filter for alerts by selectedYear and selectedDistrict
+  const filteredAlertsByYearAndDistrict = useMemo(() => {
+    return alerts.filter((a: Alert) => {
+      const matchYear = !a.year || a.year === selectedYear;
+      const matchDistrict = isDistrictMatch(a.district, selectedDistrict);
+      return matchYear && matchDistrict;
+    });
+  }, [alerts, selectedYear, selectedDistrict]);
+
+  // Compute dynamic stats based on selected fiscal year AND selected district
+  const dashboardSummary = useMemo<DashboardSummary>(() => {
+    const base = yearlySummaries[selectedYear] || yearlySummaries['2569'];
+    if (selectedDistrict === 'all') {
+      return base;
+    }
+
+    const districtExposures = filteredPatientsByYearAndDistrict.length;
+    const districtPositive = filteredAlertsByYearAndDistrict.filter((a: Alert) => a.level === 'critical' || a.sample_id || a.lab_result?.includes('บวก')).length;
+
+    const cleanDistName = selectedDistrictName.replace(/^อ\./, '').trim();
+    const vaxRecord = districtVaccinationData.find(d => d.district.includes(cleanDistName));
+    const coverage = vaxRecord ? vaxRecord.coverage : base.vaccinationCoverage;
+
+    return {
+      totalCases: districtExposures + districtPositive,
+      totalCasesChange: 0,
+      totalExposures: districtExposures,
+      totalExposuresChange: 0,
+      positiveAnimals: districtPositive,
+      positiveAnimalsChange: 0,
+      vaccinationCoverage: coverage,
+      vaccinationCoverageChange: 0,
+    };
+  }, [selectedYear, selectedDistrict, selectedDistrictName, filteredPatientsByYearAndDistrict, filteredAlertsByYearAndDistrict]);
+
+  const categoryCount = useMemo<CategoryCount>(() => {
+    if (selectedDistrict === 'all') {
+      return initialCategoryCount;
+    }
+
+    let catI = 0;
+    let catII = 0;
+    let catIII = 0;
+    filteredPatientsByYearAndDistrict.forEach((p: PatientListItem) => {
+      if (p.wound_category === 'I') catI++;
+      else if (p.wound_category === 'II') catII++;
+      else if (p.wound_category === 'III') catIII++;
+    });
+
+    return {
+      catI,
+      catII,
+      catIII,
+      deaths: 0,
+    };
+  }, [selectedDistrict, filteredPatientsByYearAndDistrict]);
+
+  const trendData = useMemo<TrendData[]>(() => {
+    const baseTrends = yearlyTrends[selectedYear] || yearlyTrends['2569'];
+    if (selectedDistrict === 'all') {
+      return baseTrends;
+    }
+
+    const months = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+    const monthDataMap: Record<string, { exposures: number; positive: number }> = {};
+    months.forEach(m => { monthDataMap[m] = { exposures: 0, positive: 0 }; });
+
+    filteredAlertsByYearAndDistrict.forEach((a: Alert) => {
+      if (a.date_thai) {
+        months.forEach(m => {
+          if (a.date_thai?.includes(m)) {
+            monthDataMap[m].positive++;
+          }
+        });
+      }
+    });
+
+    filteredPatientsByYearAndDistrict.forEach((p: PatientListItem) => {
+      if (p.exposure_date) {
+        months.forEach((m, idx) => {
+          const monthNum = (idx + 1).toString().padStart(2, '0');
+          if (p.exposure_date.includes(`-${monthNum}-`) || p.exposure_date.includes(m)) {
+            monthDataMap[m].exposures++;
+          }
+        });
+      }
+    });
+
+    return months.map(m => ({
+      month: m,
+      cases: monthDataMap[m].exposures + monthDataMap[m].positive,
+      exposures: monthDataMap[m].exposures,
+      positiveAnimals: monthDataMap[m].positive,
+    }));
+  }, [selectedYear, selectedDistrict, filteredAlertsByYearAndDistrict, filteredPatientsByYearAndDistrict]);
 
   return (
     <DataContext.Provider
@@ -778,6 +921,11 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         // Fiscal Year
         selectedYear,
         setSelectedYear: handleSelectYear,
+        // District Filter
+        selectedDistrict,
+        setSelectedDistrict: handleSelectDistrict,
+        selectedDistrictName,
+        isDistrictMatch: (itemDistrict?: string) => isDistrictMatch(itemDistrict, selectedDistrict),
         show5kmRadius,
         setShow5kmRadius,
         toggle5kmRadius,

@@ -39,26 +39,42 @@ const alertRules = [
 ];
 
 export default function AlertsPage() {
-  const { alerts, selectedYear, setToastMessage } = useData();
+  const { 
+    alerts, 
+    selectedYear, 
+    selectedDistrict, 
+    setSelectedDistrict, 
+    selectedDistrictName, 
+    isDistrictMatch, 
+    setToastMessage 
+  } = useData();
   const [activeTab, setActiveTab] = useState('all');
   const [copiedId, setCopiedId] = useState<number | null>(null);
   const [shareAlert, setShareAlert] = useState<Alert | null>(null);
   const [selectedLabAlert, setSelectedLabAlert] = useState<Alert | null>(null);
 
-  const recentCount = alerts.filter(a => a.is_recent_1_month).length;
-  const totalExposures = alerts.reduce((sum, a) => sum + (a.exposures_count || 0), 0);
+  const districtAlerts = useMemo(() => {
+    return alerts.filter(a => (!a.year || a.year === selectedYear) && isDistrictMatch(a.district));
+  }, [alerts, selectedYear, isDistrictMatch]);
+
+  const recentCount = useMemo(() => districtAlerts.filter(a => a.is_recent_1_month).length, [districtAlerts]);
+  const totalExposures = useMemo(() => districtAlerts.reduce((sum, a) => sum + (a.exposures_count || 0), 0), [districtAlerts]);
 
   const filteredAlerts = useMemo(() => {
-    if (activeTab === 'all') return alerts;
-    if (activeTab === 'recent') return alerts.filter(a => a.is_recent_1_month);
-    if (activeTab === 'yangtalat') return alerts.filter(a => a.district?.includes('ยางตลาด'));
-    if (activeTab === 'nongkungsi') return alerts.filter(a => a.district?.includes('หนองกุงศรี'));
-    if (activeTab === 'muang') return alerts.filter(a => a.district?.includes('เมือง'));
-    if (activeTab === 'others') {
-      return alerts.filter(a => !a.district?.includes('ยางตลาด') && !a.district?.includes('หนองกุงศรี') && !a.district?.includes('เมือง'));
+    let result = districtAlerts;
+    if (activeTab === 'recent') {
+      result = result.filter(a => a.is_recent_1_month);
+    } else if (activeTab === 'yangtalat') {
+      result = result.filter(a => a.district?.includes('ยางตลาด'));
+    } else if (activeTab === 'nongkungsi') {
+      result = result.filter(a => a.district?.includes('หนองกุงศรี'));
+    } else if (activeTab === 'muang') {
+      result = result.filter(a => a.district?.includes('เมือง'));
+    } else if (activeTab === 'others') {
+      result = result.filter(a => !a.district?.includes('ยางตลาด') && !a.district?.includes('หนองกุงศรี') && !a.district?.includes('เมือง'));
     }
-    return alerts;
-  }, [alerts, activeTab]);
+    return result;
+  }, [districtAlerts, activeTab]);
 
   const handleCopyAlert = (alert: Alert) => {
     const text = formatLineShareMessage(alert);
@@ -79,8 +95,8 @@ export default function AlertsPage() {
         <div>
           <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight text-gray-900 flex flex-wrap items-center gap-2">
             <span>ศูนย์แจ้งเตือนภัยโรคพิษสุนัขบ้า</span>
-            <span className="text-xs sm:text-sm font-normal px-2.5 py-0.5 sm:py-1 bg-blue-100 text-blue-800 rounded-full flex items-center gap-1 shrink-0">
-              <MapPin size={13} /> จ.กาฬสินธุ์
+            <span className="text-xs sm:text-sm font-normal px-2.5 py-0.5 sm:py-1 bg-blue-100 text-blue-800 rounded-full flex items-center gap-1 shrink-0 font-medium">
+              <MapPin size={13} /> {selectedDistrictName}
             </span>
           </h1>
           <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
@@ -88,6 +104,26 @@ export default function AlertsPage() {
           </p>
         </div>
       </div>
+
+      {/* Active District Filter Alert Banner */}
+      {selectedDistrict !== 'all' && (
+        <div className="flex items-center justify-between p-2.5 sm:p-3 bg-blue-50/90 border border-blue-300 rounded-xl text-xs text-blue-900 shadow-2xs">
+          <div className="flex items-center gap-2">
+            <MapPin className="w-4 h-4 text-blue-600 shrink-0" />
+            <span>
+              📍 กรองแสดงเฉพาะพื้นที่: <strong>{selectedDistrictName}</strong> (พบสัตว์ผลบวก {districtAlerts.length} ตัว)
+            </span>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setSelectedDistrict('all')}
+            className="h-7 text-xs border-blue-400 bg-white hover:bg-blue-100 text-blue-900 cursor-pointer font-semibold"
+          >
+            ✕ แสดงทุกอำเภอ
+          </Button>
+        </div>
+      )}
       
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
@@ -100,7 +136,7 @@ export default function AlertsPage() {
         />
         <KpiCard 
           title="สัตว์ตรวจพบเชื้อสะสม (Lab +)" 
-          value={`${alerts.length} ตัว`} 
+          value={`${districtAlerts.length} ตัว`} 
           change={0} 
           icon={AlertOctagon} 
           colorClass="text-orange-500" 
@@ -129,7 +165,7 @@ export default function AlertsPage() {
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <div>
                   <CardTitle className="text-base sm:text-lg flex items-center gap-2">
-                    <span>ประวัติรายงานสัตว์ติดเชื้อและผล Lab (32 หัว)</span>
+                    <span>ประวัติรายงานสัตว์ติดเชื้อและผล Lab ({districtAlerts.length} หัว{selectedDistrict !== 'all' ? ` - ${selectedDistrictName}` : ''})</span>
                   </CardTitle>
                   <CardDescription className="text-xs mt-0.5">
                     กดปุ่ม &apos;แชร์เข้า LINE&apos; เพื่อส่งข้อมูลเหตุการณ์และผลตรวจ Lab เข้ากลุ่มประสานงานทันที
@@ -148,7 +184,7 @@ export default function AlertsPage() {
                       : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                   }`}
                 >
-                  ทั้งหมด ({alerts.length})
+                  ทั้งหมด ({districtAlerts.length})
                 </button>
                 <button
                   type="button"

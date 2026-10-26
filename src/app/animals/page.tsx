@@ -17,10 +17,19 @@ import { QuarantineTracker } from '@/components/animals/quarantine-tracker';
 import { LabReportDialog } from '@/components/dashboard/lab-report-dialog';
 import { LineShareDialog } from '@/components/dashboard/line-share-dialog';
 import { useData } from '@/context/data-context';
+import { Button } from '@/components/ui/button';
 import { Alert } from '@/types';
 
 export default function AnimalsPage() {
-  const { selectedYear, alerts, setToastMessage } = useData();
+  const { 
+    selectedYear, 
+    selectedDistrict, 
+    setSelectedDistrict, 
+    selectedDistrictName, 
+    isDistrictMatch, 
+    alerts, 
+    setToastMessage 
+  } = useData();
   const animalSummary = yearlyAnimalSummaries[selectedYear] || yearlyAnimalSummaries['2569'];
   const labSummary = yearlyLabSummaries[selectedYear] || yearlyLabSummaries['2569'];
   const districtData = yearlyDistrictVaccinationData[selectedYear] || [];
@@ -29,6 +38,25 @@ export default function AnimalsPage() {
   const [selectedPdfAlert, setSelectedPdfAlert] = useState<Alert | null>(null);
   const [selectedLineAlert, setSelectedLineAlert] = useState<Alert | null>(null);
 
+  const filteredAlertsForDistrict = React.useMemo(() => {
+    return alerts.filter(a => (!a.year || a.year === selectedYear) && isDistrictMatch(a.district));
+  }, [alerts, selectedYear, isDistrictMatch]);
+
+  const cleanDistName = selectedDistrictName.replace(/^อ\./, '').trim();
+  const matchedDistrictVax = districtData.find(d => d.district.includes(cleanDistName));
+
+  const positiveAnimalsCount = selectedDistrict === 'all' 
+    ? animalSummary.positive 
+    : filteredAlertsForDistrict.length;
+
+  const vaccinatedCount = selectedDistrict === 'all'
+    ? animalSummary.vaccinated
+    : (matchedDistrictVax ? matchedDistrictVax.vaccinated : 0);
+
+  const totalReportedCount = selectedDistrict === 'all'
+    ? animalSummary.totalReported
+    : (matchedDistrictVax ? Math.round(matchedDistrictVax.target * 0.05) + positiveAnimalsCount : positiveAnimalsCount * 3);
+
   return (
     <div className="space-y-4 sm:space-y-6">
       {/* Header */}
@@ -36,8 +64,8 @@ export default function AnimalsPage() {
         <div>
           <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight text-gray-900 flex flex-wrap items-center gap-2">
             <span>การเฝ้าระวังโรคพิษสุนัขบ้าในสัตว์</span>
-            <span className="text-xs sm:text-sm font-normal px-2.5 py-0.5 sm:py-1 bg-blue-100 text-blue-800 rounded-full flex items-center gap-1 shrink-0">
-              <MapPin size={13} /> จ.กาฬสินธุ์
+            <span className="text-xs sm:text-sm font-normal px-2.5 py-0.5 sm:py-1 bg-blue-100 text-blue-800 rounded-full flex items-center gap-1 shrink-0 font-medium">
+              <MapPin size={13} /> {selectedDistrictName}
             </span>
           </h1>
           <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
@@ -45,19 +73,39 @@ export default function AnimalsPage() {
           </p>
         </div>
       </div>
+
+      {/* Active District Filter Alert Banner */}
+      {selectedDistrict !== 'all' && (
+        <div className="flex items-center justify-between p-2.5 sm:p-3 bg-blue-50/90 border border-blue-300 rounded-xl text-xs text-blue-900 shadow-2xs">
+          <div className="flex items-center gap-2">
+            <MapPin className="w-4 h-4 text-blue-600 shrink-0" />
+            <span>
+              📍 กรองแสดงเฉพาะพื้นที่: <strong>{selectedDistrictName}</strong> (พบสัตว์ผลบวก {positiveAnimalsCount} ตัว)
+            </span>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setSelectedDistrict('all')}
+            className="h-7 text-xs border-blue-400 bg-white hover:bg-blue-100 text-blue-900 cursor-pointer font-semibold"
+          >
+            ✕ แสดงทุกอำเภอ
+          </Button>
+        </div>
+      )}
       
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <KpiCard 
           title="สัตว์มีประวัติรายงานสงสัย" 
-          value={`${animalSummary.totalReported.toLocaleString()} ตัว`} 
+          value={`${totalReportedCount.toLocaleString()} ตัว`} 
           change={animalSummary.totalReportedChange} 
           icon={PawPrint} 
           colorClass="text-blue-500" 
         />
         <KpiCard 
           title="ตรวจยืนยันผลบวก (Rabies +)" 
-          value={`${animalSummary.positive.toLocaleString()} ตัว`} 
+          value={`${positiveAnimalsCount.toLocaleString()} ตัว`} 
           change={animalSummary.positiveChange} 
           icon={AlertTriangle} 
           colorClass="text-red-500" 
@@ -71,7 +119,7 @@ export default function AnimalsPage() {
         />
         <KpiCard 
           title="สัตว์ได้รับการฉีดวัคซีนแล้ว" 
-          value={`${animalSummary.vaccinated.toLocaleString()} ตัว`} 
+          value={`${vaccinatedCount.toLocaleString()} ตัว`} 
           change={animalSummary.vaccinatedChange} 
           icon={Syringe} 
           colorClass="text-emerald-500" 

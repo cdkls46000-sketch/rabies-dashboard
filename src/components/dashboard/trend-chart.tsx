@@ -15,13 +15,15 @@ import { Badge } from '@/components/ui/badge';
 import { useData } from '@/context/data-context';
 
 export default function TrendChart() {
-  const { trendData, selectedYear } = useData();
+  const { trendData, selectedYear, selectedDistrictName } = useData();
 
   return (
     <Card className="w-full h-full">
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-base sm:text-lg">📈 แนวโน้มสถานการณ์รายเดือน</CardTitle>
+          <CardTitle className="text-base sm:text-lg">
+            📈 แนวโน้มสถานการณ์รายเดือน ({selectedDistrictName})
+          </CardTitle>
           <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200 font-semibold">
             ปี พ.ศ. {selectedYear}
           </Badge>

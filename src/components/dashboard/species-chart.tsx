@@ -1,5 +1,6 @@
 'use client';
 
+import React, { useMemo } from 'react';
 import {
   PieChart,
   Pie,
@@ -26,14 +27,42 @@ const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, per
 };
 
 export default function SpeciesChart() {
-  const { selectedYear } = useData();
-  const rawData = yearlySpeciesData[selectedYear] || [];
-  const activeSpecies = rawData.filter(d => d.value > 0);
+  const { selectedYear, selectedDistrict, selectedDistrictName, alerts, isDistrictMatch } = useData();
+
+  const activeSpecies = React.useMemo(() => {
+    if (selectedDistrict === 'all') {
+      const rawData = yearlySpeciesData[selectedYear] || [];
+      return rawData.filter(d => d.value > 0);
+    }
+
+    const filteredAlerts = alerts.filter(a => (!a.year || a.year === selectedYear) && isDistrictMatch(a.district));
+    let dogs = 0;
+    let cows = 0;
+    let cats = 0;
+    let others = 0;
+
+    filteredAlerts.forEach(a => {
+      if (a.animal_species === 'สุนัข') dogs++;
+      else if (a.animal_species === 'โค') cows++;
+      else if (a.animal_species === 'แมว') cats++;
+      else others++;
+    });
+
+    const list = [
+      { name: 'สุนัข', value: dogs, color: '#ef4444' },
+      { name: 'โค', value: cows, color: '#f59e0b' },
+      { name: 'แมว', value: cats, color: '#3b82f6' },
+      { name: 'อื่นๆ', value: others, color: '#8b5cf6' },
+    ];
+    return list.filter(d => d.value > 0);
+  }, [selectedYear, selectedDistrict, alerts, isDistrictMatch]);
 
   return (
     <Card className="w-full h-full">
       <CardHeader className="pb-2">
-        <CardTitle className="text-base sm:text-lg">🥧 สัดส่วนประเภทสัตว์ที่ตรวจพบเชื้อ</CardTitle>
+        <CardTitle className="text-base sm:text-lg">
+          🥧 สัดส่วนประเภทสัตว์ที่ตรวจพบเชื้อ ({selectedDistrictName})
+        </CardTitle>
       </CardHeader>
       <CardContent>
         {activeSpecies.length === 0 ? (

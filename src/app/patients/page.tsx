@@ -27,7 +27,7 @@ import {
   FileText,
   Users
 } from 'lucide-react';
-import { yearlyVaccineCoverageData, kalasinDistricts } from '@/lib/mock-data';
+import { yearlyVaccineCoverageData, kalasinDistricts, kalasinDistrictMap } from '@/lib/mock-data';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
@@ -44,7 +44,7 @@ import { VaccineCoverageChart } from '@/components/patients/vaccine-coverage-cha
 import { PepCalculatorDialog } from '@/components/patients/pep-calculator-dialog';
 import { AppointmentCardDialog } from '@/components/patients/appointment-card-dialog';
 import { FollowUpTrackerDialog } from '@/components/patients/follow-up-tracker-dialog';
-import { PatientListItem } from '@/types';
+import { PatientListItem, FiscalYear } from '@/types';
 import { useData } from '@/context/data-context';
 
 export default function PatientsPage() {
@@ -58,6 +58,11 @@ export default function PatientsPage() {
     togglePdpa,
     getDisplayName,
     selectedYear,
+    setSelectedYear,
+    selectedDistrict,
+    setSelectedDistrict,
+    selectedDistrictName,
+    isDistrictMatch,
     currentUser,
     isLoggedIn,
     setIsLoginOpen,
@@ -65,8 +70,6 @@ export default function PatientsPage() {
   } = useData();
 
   const [search, setSearch] = useState('');
-  const [districtFilter, setDistrictFilter] = useState('all');
-  const [yearFilter, setYearFilter] = useState<string>(selectedYear);
   const [statusTab, setStatusTab] = useState<'all' | 'overdue' | 'pending' | 'completed' | 'positive_linked'>('all');
 
   // Modals state
@@ -74,61 +77,87 @@ export default function PatientsPage() {
   const [selectedCardPatient, setSelectedCardPatient] = useState<PatientListItem | null>(null);
   const [selectedTrackerPatient, setSelectedTrackerPatient] = useState<PatientListItem | null>(null);
 
-  const districtFilterItems = useMemo(() => {
-    const map: Record<string, string> = {
-      all: 'อำเภอ: ทุกอำเภอ (จ.กาฬสินธุ์)',
-    };
-    kalasinDistricts.filter(d => d.id !== 'all').forEach(d => {
-      map[d.name.replace('อ.', '')] = d.name;
-    });
-    return map;
-  }, []);
-
   const yearFilterItems: Record<string, string> = {
-    all: 'ปีงบประมาณ: ทุกปี',
     '2568': 'พ.ศ. 2568',
     '2569': 'พ.ศ. 2569',
     '2570': 'พ.ศ. 2570',
     '2571': 'พ.ศ. 2571',
   };
 
-  React.useEffect(() => {
-    setYearFilter(selectedYear);
-  }, [selectedYear]);
+  // Base cohort filtered by selected fiscal year and selected district
+  const baseCohort = useMemo(() => {
+    return patients.filter(p => {
+      const matchYear = p.year === selectedYear || (!p.year && selectedYear === '2569');
+      const matchDistrict = isDistrictMatch(p.district);
+      return matchYear && matchDistrict;
+    });
+  }, [patients, selectedYear, isDistrictMatch]);
 
-  // Status Tab Counts
-  const overdueCount = useMemo(() => patients.filter(p => p.follow_up_status === 'overdue').length, [patients]);
-  const pendingCount = useMemo(() => patients.filter(p => p.follow_up_status === 'pending').length, [patients]);
-  const completedCount = useMemo(() => patients.filter(p => p.follow_up_status === 'completed').length, [patients]);
-  const positiveLinkedCount = useMemo(() => patients.filter(p => p.notes && p.notes.includes('หัวที่')).length, [patients]);
+  // Status Tab Counts for current filtered cohort
+  const overdueCount = useMemo(() => baseCohort.filter(p => p.follow_up_status === 'overdue').length, [baseCohort]);
+  const pendingCount = useMemo(() => baseCohort.filter(p => p.follow_up_status === 'pending').length, [baseCohort]);
+  const completedCount = useMemo(() => baseCohort.filter(p => p.follow_up_status === 'completed').length, [baseCohort]);
+  const positiveLinkedCount = useMemo(() => baseCohort.filter(p => p.notes && p.notes.includes('หัวที่')).length, [baseCohort]);
 
-  // Filter patients based on search, district, fiscal year, and status tab
-  const filteredPatients = patients.filter(p => {
-    const matchesSearch = 
-      p.name.toLowerCase().includes(search.toLowerCase()) ||
-      p.hn.toLowerCase().includes(search.toLowerCase()) ||
-      (p.village_name && p.village_name.toLowerCase().includes(search.toLowerCase())) ||
-      (p.subdistrict && p.subdistrict.toLowerCase().includes(search.toLowerCase())) ||
-      (p.district && p.district.toLowerCase().includes(search.toLowerCase()));
+  // Filter patients based on search and statusTab
+  const filteredPatients = useMemo(() => {
+    return baseCohort.filter(p => {
+      const matchesSearch = 
+        !search.trim() ||
+        p.name.toLowerCase().includes(search.toLowerCase()) ||
+        p.hn.toLowerCase().includes(search.toLowerCase()) ||
+        (p.village_name && p.village_name.toLowerCase().includes(search.toLowerCase())) ||
+        (p.subdistrict && p.subdistrict.toLowerCase().includes(search.toLowerCase())) ||
+        (p.district && p.district.toLowerCase().includes(search.toLowerCase()));
 
-    const matchesDistrict = 
-      districtFilter === 'all' || 
-      (p.district && p.district.includes(districtFilter));
+      const matchesStatus =
+        statusTab === 'all' ? true :
+        statusTab === 'overdue' ? p.follow_up_status === 'overdue' :
+        statusTab === 'pending' ? p.follow_up_status === 'pending' :
+        statusTab === 'completed' ? p.follow_up_status === 'completed' :
+        statusTab === 'positive_linked' ? Boolean(p.notes && p.notes.includes('หัวที่')) : true;
 
-    const matchesYear =
-      yearFilter === 'all'
-        ? (p.year === selectedYear || (!p.year && selectedYear === '2569'))
-        : (p.year === yearFilter || (!p.year && yearFilter === '2569'));
+      return matchesSearch && matchesStatus;
+    });
+  }, [baseCohort, search, statusTab]);
 
-    const matchesStatus =
-      statusTab === 'all' ? true :
-      statusTab === 'overdue' ? p.follow_up_status === 'overdue' :
-      statusTab === 'pending' ? p.follow_up_status === 'pending' :
-      statusTab === 'completed' ? p.follow_up_status === 'completed' :
-      statusTab === 'positive_linked' ? Boolean(p.notes && p.notes.includes('หัวที่')) : true;
+  // Dynamic vaccine coverage data for current district/year
+  const dynamicVaccineCoverage = useMemo(() => {
+    const total = baseCohort.length;
+    if (total === 0) return [];
+    
+    const countAtLeastDose = (minDose: number) => {
+      return baseCohort.filter(p => {
+        if (!p.vaccine_status) return false;
+        if (p.vaccine_status.includes('ครบชุด') || p.follow_up_status === 'completed') return true;
+        const match = p.vaccine_status.match(/เข็ม\s*(\d+)/);
+        if (match) {
+          const dose = parseInt(match[1], 10);
+          return dose >= minDose;
+        }
+        return false;
+      }).length;
+    };
 
-    return matchesSearch && matchesDistrict && matchesYear && matchesStatus;
-  });
+    const d1 = total;
+    const d2 = countAtLeastDose(2);
+    const d3 = countAtLeastDose(3);
+    const d4 = countAtLeastDose(4);
+    const d5 = countAtLeastDose(5);
+
+    return [
+      { dose: 'เข็ม 1 (Day 0)', percentage: 100, count: d1 },
+      { dose: 'เข็ม 2 (Day 3)', percentage: total > 0 ? Math.round((d2 / total) * 1000) / 10 : 0, count: d2 },
+      { dose: 'เข็ม 3 (Day 7)', percentage: total > 0 ? Math.round((d3 / total) * 1000) / 10 : 0, count: d3 },
+      { dose: 'เข็ม 4 (Day 14)', percentage: total > 0 ? Math.round((d4 / total) * 1000) / 10 : 0, count: d4 },
+      { dose: 'เข็ม 5 (Day 28)', percentage: total > 0 ? Math.round((d5 / total) * 1000) / 10 : 0, count: d5 },
+    ];
+  }, [baseCohort]);
+
+  // Dynamic RIG Coverage Calculation
+  const cat3Cohort = useMemo(() => baseCohort.filter(p => p.wound_category === 'III'), [baseCohort]);
+  const rigCount = useMemo(() => cat3Cohort.filter(p => p.rig_given).length, [cat3Cohort]);
+  const rigPct = cat3Cohort.length > 0 ? ((rigCount / cat3Cohort.length) * 100).toFixed(1) : '100.0';
 
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -139,8 +168,8 @@ export default function PatientsPage() {
             <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight text-gray-900">
               ทะเบียนผู้สัมผัสโรคพิษสุนัขบ้า (Exposures)
             </h1>
-            <span className="text-xs sm:text-sm font-normal px-2.5 py-0.5 sm:py-1 bg-blue-100 text-blue-800 rounded-full flex items-center gap-1 shrink-0">
-              <MapPin size={13} /> จ.กาฬสินธุ์
+            <span className="text-xs sm:text-sm font-normal px-2.5 py-0.5 sm:py-1 bg-blue-100 text-blue-800 rounded-full flex items-center gap-1 shrink-0 font-medium">
+              <MapPin size={13} /> {selectedDistrictName}
             </span>
             <Badge variant="outline" className="text-[11px] bg-emerald-50 text-emerald-800 border-emerald-300 flex items-center gap-1">
               <ShieldCheck size={13} /> {isPdpaActive ? 'PDPA Masking เปิดใช้งาน' : 'โหมดเจ้าหน้าที่'}
@@ -178,6 +207,26 @@ export default function PatientsPage() {
         </div>
       </div>
 
+      {/* Active District Filter Alert Banner */}
+      {selectedDistrict !== 'all' && (
+        <div className="flex items-center justify-between p-2.5 sm:p-3 bg-blue-50/90 border border-blue-300 rounded-xl text-xs text-blue-900 shadow-2xs">
+          <div className="flex items-center gap-2">
+            <MapPin className="w-4 h-4 text-blue-600 shrink-0" />
+            <span>
+              📍 กรองแสดงเฉพาะพื้นที่: <strong>{selectedDistrictName}</strong> (พบผู้สัมผัสโรค {baseCohort.length} ราย)
+            </span>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setSelectedDistrict('all')}
+            className="h-7 text-xs border-blue-400 bg-white hover:bg-blue-100 text-blue-900 cursor-pointer font-semibold"
+          >
+            ✕ แสดงทุกอำเภอ
+          </Button>
+        </div>
+      )}
+
       {/* แถบชี้แจงระบาดวิทยา: ไม่มีผู้ป่วย มีเฉพาะผู้สัมผัสโรค */}
       <div className="p-3 bg-emerald-50/90 border border-emerald-200 rounded-xl flex items-center justify-between gap-2.5 text-xs shadow-xs">
         <div className="flex items-center gap-2">
@@ -195,7 +244,7 @@ export default function PatientsPage() {
           {
             id: 'total',
             title: 'ผู้สัมผัสโรคทั้งหมด',
-            subtitle: `One Health จ.กาฬสินธุ์`,
+            subtitle: selectedDistrict === 'all' ? 'One Health จ.กาฬสินธุ์' : `One Health ${selectedDistrictName}`,
             value: totalExposures,
             unit: 'ราย',
             badge: '👥 ผู้สัมผัสสะสม',
@@ -256,9 +305,9 @@ export default function PatientsPage() {
             id: 'rig',
             title: 'ความครอบคลุม RIG',
             subtitle: 'ในกลุ่ม Category III',
-            value: '93.8',
+            value: rigPct,
             unit: '%',
-            badge: '✓ 30 จาก 32 ราย',
+            badge: `✓ ${rigCount} จาก ${cat3Cohort.length} ราย`,
             icon: Syringe,
             border: 'border-purple-200/90',
             bgGradient: 'bg-gradient-to-br from-purple-50/80 via-white to-purple-50/30',
@@ -418,7 +467,7 @@ export default function PatientsPage() {
             <div>
               <CardTitle className="text-base sm:text-lg flex items-center gap-2">
                 <Activity className="w-5 h-5 text-blue-600 shrink-0" />
-                <span>ความครอบคลุมการฉีดวัคซีน PEP</span>
+                <span>ความครอบคลุมการฉีดวัคซีน PEP ({selectedDistrictName})</span>
               </CardTitle>
               <CardDescription className="text-xs mt-0.5">
                 อัตราผู้สัมผัสโรคที่ได้รับวัคซีนครบตามกำหนดแต่ละเข็ม (เข็ม 1 - 5) ประจำปี พ.ศ. {selectedYear}
@@ -426,7 +475,7 @@ export default function PatientsPage() {
             </div>
             <div className="flex flex-wrap items-center gap-2">
               <Badge variant="outline" className="bg-emerald-50 text-emerald-800 border-emerald-300 text-xs font-semibold">
-                ✓ ฉีดครบชุด 93.8% (เกณฑ์เป้าหมายกระทรวงฯ ≥ 85%)
+                ✓ ฉีดครบชุด {dynamicVaccineCoverage[4]?.percentage ?? 93.8}% (เกณฑ์เป้าหมายกระทรวงฯ ≥ 85%)
               </Badge>
               {overdueCount > 0 && (
                 <Badge variant="outline" className="bg-rose-50 text-rose-800 border-rose-300 text-xs font-semibold flex items-center gap-1">
@@ -441,11 +490,11 @@ export default function PatientsPage() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6 items-start">
             {/* กราฟแท่งความครอบคลุม */}
             <div className="lg:col-span-7">
-              {yearlyVaccineCoverageData[selectedYear] && yearlyVaccineCoverageData[selectedYear].length > 0 ? (
-                <VaccineCoverageChart data={yearlyVaccineCoverageData[selectedYear]} />
+              {dynamicVaccineCoverage.length > 0 ? (
+                <VaccineCoverageChart data={dynamicVaccineCoverage} />
               ) : (
                 <div className="h-[280px] flex items-center justify-center text-xs text-muted-foreground bg-slate-50 rounded-lg border border-dashed border-slate-200">
-                  ไม่มีข้อมูลรายงานในปี พ.ศ. {selectedYear}
+                  ไม่มีข้อมูลรายงานในพื้นที่นี้ในปี พ.ศ. {selectedYear}
                 </div>
               )}
             </div>
@@ -456,28 +505,28 @@ export default function PatientsPage() {
                 <div className="p-2.5 bg-blue-50/70 border border-blue-200/80 rounded-lg">
                   <div className="text-[11px] text-blue-700 font-medium">เข็ม 1 (Day 0)</div>
                   <div className="text-base font-bold text-blue-950 mt-0.5">100%</div>
-                  <div className="text-[10px] text-blue-600">เริ่มฉีดทันที 133 ราย</div>
+                  <div className="text-[10px] text-blue-600">เริ่มฉีดทันที {baseCohort.length} ราย</div>
                 </div>
                 <div className="p-2.5 bg-sky-50/70 border border-sky-200/80 rounded-lg">
                   <div className="text-[11px] text-sky-700 font-medium">เข็ม 2 (Day 3)</div>
-                  <div className="text-base font-bold text-sky-950 mt-0.5">96.5%</div>
-                  <div className="text-[10px] text-sky-600">ตามนัด 128 ราย</div>
+                  <div className="text-base font-bold text-sky-950 mt-0.5">{dynamicVaccineCoverage[1]?.percentage ?? 0}%</div>
+                  <div className="text-[10px] text-sky-600">ตามนัด {dynamicVaccineCoverage[1]?.count ?? 0} ราย</div>
                 </div>
                 <div className="p-2.5 bg-cyan-50/70 border border-cyan-200/80 rounded-lg">
                   <div className="text-[11px] text-cyan-700 font-medium">เข็ม 3 (Day 7)</div>
-                  <div className="text-base font-bold text-cyan-950 mt-0.5">91.2%</div>
-                  <div className="text-[10px] text-cyan-600">ภูมิคุ้มกันระดับปลอดภัย</div>
+                  <div className="text-base font-bold text-cyan-950 mt-0.5">{dynamicVaccineCoverage[2]?.percentage ?? 0}%</div>
+                  <div className="text-[10px] text-cyan-600">ภูมิคุ้มกันระดับปลอดภัย ({dynamicVaccineCoverage[2]?.count ?? 0} ราย)</div>
                 </div>
                 <div className="p-2.5 bg-indigo-50/70 border border-indigo-200/80 rounded-lg">
                   <div className="text-[11px] text-indigo-700 font-medium">เข็ม 4 (Day 14)</div>
-                  <div className="text-base font-bold text-indigo-950 mt-0.5">86.8%</div>
-                  <div className="text-[10px] text-indigo-600">ภูมิคุ้มกันคงที่</div>
+                  <div className="text-base font-bold text-indigo-950 mt-0.5">{dynamicVaccineCoverage[3]?.percentage ?? 0}%</div>
+                  <div className="text-[10px] text-indigo-600">ภูมิคุ้มกันคงที่ ({dynamicVaccineCoverage[3]?.count ?? 0} ราย)</div>
                 </div>
                 <div className="p-2.5 bg-emerald-50/70 border border-emerald-200/80 rounded-lg col-span-2 sm:col-span-1 lg:col-span-2">
                   <div className="flex items-center justify-between">
                     <div>
                       <div className="text-[11px] text-emerald-700 font-medium">เข็ม 5 (Day 28) - ครบชุด</div>
-                      <div className="text-base font-bold text-emerald-950 mt-0.5">81.5% (Essen) / ครบสูตร ID 93.8%</div>
+                      <div className="text-base font-bold text-emerald-950 mt-0.5">ครบสูตร {dynamicVaccineCoverage[4]?.percentage ?? 0}% ({dynamicVaccineCoverage[4]?.count ?? 0} ราย)</div>
                     </div>
                     <Badge className="bg-emerald-600 text-white text-[10px]">
                       {overdueCount > 0 ? `🚨 ขาดนัด ${overdueCount} ราย` : '✓ ปลอดภัย 100%'}
@@ -573,7 +622,7 @@ export default function PatientsPage() {
                       : 'text-slate-600 hover:text-slate-900'
                   }`}
                 >
-                  ทั้งหมด ({patients.length})
+                  ทั้งหมด ({baseCohort.length})
                 </button>
                 <button
                   type="button"
@@ -660,9 +709,9 @@ export default function PatientsPage() {
 
                 {/* District Filter */}
                 <Select 
-                  value={districtFilter} 
-                  onValueChange={(val) => { if (val) setDistrictFilter(val); }}
-                  items={districtFilterItems}
+                  value={selectedDistrict} 
+                  onValueChange={(val) => { if (val) setSelectedDistrict(val); }}
+                  items={kalasinDistrictMap}
                 >
                   <SelectTrigger className="h-8 text-xs w-full">
                     <SelectValue placeholder="อำเภอ" />
@@ -670,7 +719,7 @@ export default function PatientsPage() {
                   <SelectContent className="max-h-48">
                     <SelectItem value="all">ทุกอำเภอ (จ.กาฬสินธุ์)</SelectItem>
                     {kalasinDistricts.filter(d => d.id !== 'all').map(d => (
-                      <SelectItem key={d.id} value={d.name.replace('อ.', '')}>
+                      <SelectItem key={d.id} value={d.id}>
                         {d.name}
                       </SelectItem>
                     ))}
@@ -679,15 +728,14 @@ export default function PatientsPage() {
 
                 {/* Fiscal Year Filter */}
                 <Select 
-                  value={yearFilter} 
-                  onValueChange={(val) => { if (val) setYearFilter(val); }}
+                  value={selectedYear} 
+                  onValueChange={(val) => { if (val) setSelectedYear(val as FiscalYear); }}
                   items={yearFilterItems}
                 >
                   <SelectTrigger className="h-8 text-xs font-semibold text-blue-700 w-full">
                     <SelectValue placeholder="ปี พ.ศ." />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">ทุกปีงบประมาณ</SelectItem>
                     <SelectItem value="2568">พ.ศ. 2568</SelectItem>
                     <SelectItem value="2569">พ.ศ. 2569</SelectItem>
                     <SelectItem value="2570">พ.ศ. 2570</SelectItem>

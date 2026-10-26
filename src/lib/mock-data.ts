@@ -4448,6 +4448,11 @@ export const kalasinDistricts = [
   { id: 'khongchai', name: 'อ.ฆ้องชัย' },
 ];
 
+export const kalasinDistrictMap: Record<string, string> = kalasinDistricts.reduce((acc, d) => {
+  acc[d.id] = d.name;
+  return acc;
+}, {} as Record<string, string>);
+
 export const kalasinSubdistricts: Record<string, string[]> = {
   'อ.เมืองกาฬสินธุ์': ['ต.กาฬสินธุ์', 'ต.หลุบ', 'ต.โพนทอง', 'ต.ลำปาว', 'ต.ลำพาน', 'ต.หนองกุง', 'ต.บึงวิชัย', 'ต.ไผ่', 'ต.นาเชือก', 'ต.ลำคลอง', 'ต.เหนือ', 'ต.นาจารย์'],
   'อ.ยางตลาด': ['ต.ยางตลาด', 'ต.บัวบาน', 'ต.อุ่มเม่า', 'ต.โนนสูง', 'ต.นาเชือก', 'ต.เขาพระนอน', 'ต.ดอนสมบูรณ์', 'ต.คลองขาม', 'ต.นาดี', 'ต.หัวงัว'],

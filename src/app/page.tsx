@@ -18,7 +18,10 @@ export default function DashboardPage() {
     selectedYear, 
     isLoggedIn, 
     setIsLoginOpen, 
-    setLoginReason 
+    setLoginReason,
+    selectedDistrict,
+    setSelectedDistrict,
+    selectedDistrictName
   } = useData();
 
   return (
@@ -28,8 +31,8 @@ export default function DashboardPage() {
         <div>
           <h2 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight text-gray-900 flex flex-wrap items-center gap-2">
             <span>ภาพรวมสถานการณ์โรคพิษสุนัขบ้า</span>
-            <span className="text-xs sm:text-sm font-normal px-2.5 py-0.5 sm:py-1 bg-blue-100 text-blue-800 rounded-full flex items-center gap-1 shrink-0">
-              <MapPin size={13} /> จ.กาฬสินธุ์
+            <span className="text-xs sm:text-sm font-semibold px-2.5 py-0.5 sm:py-1 bg-blue-100 text-blue-800 rounded-full flex items-center gap-1 shrink-0">
+              <MapPin size={13} /> {selectedDistrictName}
             </span>
           </h2>
           <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
@@ -52,6 +55,25 @@ export default function DashboardPage() {
         </Button>
       </div>
 
+      {/* Active District Filter Pill Banner */}
+      {selectedDistrict !== 'all' && (
+        <div className="p-2.5 px-3.5 bg-blue-50/90 border border-blue-200/90 rounded-xl flex items-center justify-between text-xs text-blue-900 shadow-2xs">
+          <div className="flex items-center gap-2">
+            <span className="flex h-2 w-2 rounded-full bg-blue-600 animate-pulse" />
+            <span className="font-medium">
+              กำลังแสดงข้อมูลเฉพาะพื้นที่: <strong className="font-bold text-blue-950">{selectedDistrictName}</strong> (ปีงบประมาณ พ.ศ. {selectedYear})
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setSelectedDistrict('all')}
+            className="text-xs font-semibold text-blue-700 hover:text-blue-900 bg-white hover:bg-blue-100/60 px-2.5 py-1 rounded-lg border border-blue-200 transition-all cursor-pointer shadow-2xs"
+          >
+            ✕ แสดงทุกอำเภอ
+          </button>
+        </div>
+      )}
+
       {/* แถบแจ้งสถานะสำคัญ: ยืนยันไม่มีผู้ป่วยในคน มีเฉพาะผู้สัมผัสโรค */}
       <div className="p-3 sm:p-4 bg-gradient-to-r from-emerald-50 via-teal-50 to-emerald-50 border border-emerald-200 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 shadow-xs">
         <div className="flex items-start sm:items-center gap-2.5">
@@ -68,7 +90,7 @@ export default function DashboardPage() {
               </Badge>
             </div>
             <p className="text-emerald-800 text-xs mt-0.5 leading-relaxed">
-              ในพื้นที่จังหวัดกาฬสินธุ์ <strong>ไม่มีผู้ป่วยแม้แต่รายเดียว (0 ราย)</strong> มีเฉพาะ <strong>ผู้สัมผัสโรค (133 ราย)</strong> ที่ถูกสัตว์กัด/ข่วน และได้รับการดูแลฉีดวัคซีนป้องกันหลังสัมผัส (PEP) ครบถ้วนตามมาตรฐาน
+              ในพื้นที่ {selectedDistrictName} <strong>ไม่มีผู้ป่วยแม้แต่รายเดียว (0 ราย)</strong> มีเฉพาะ <strong>ผู้สัมผัสโรค ({dashboardSummary.totalExposures} ราย)</strong> และ <strong>สัตว์ตรวจยืนยันผลบวก ({dashboardSummary.positiveAnimals} ตัว)</strong> ที่ได้รับการดูแลฉีดวัคซีนป้องกันหลังสัมผัส (PEP) ครบถ้วนตามมาตรฐาน
             </p>
           </div>
         </div>

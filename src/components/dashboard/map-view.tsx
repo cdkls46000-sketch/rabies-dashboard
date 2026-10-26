@@ -19,9 +19,23 @@ const MapInner = dynamic(() => import('./map-inner'), {
 });
 
 export default function MapView() {
-  const { show5kmRadius, toggle5kmRadius, selectedYear, mapPoints } = useData();
+  const { 
+    show5kmRadius, 
+    toggle5kmRadius, 
+    selectedYear, 
+    mapPoints, 
+    selectedDistrict, 
+    selectedDistrictName, 
+    setSelectedDistrict,
+    isDistrictMatch
+  } = useData();
 
-  const activePointsCount = mapPoints.filter(p => !p.year || p.year === selectedYear).length;
+  const activePoints = mapPoints.filter(p => {
+    const matchYear = !p.year || p.year === selectedYear;
+    const matchDistrict = isDistrictMatch(p.district);
+    return matchYear && matchDistrict;
+  });
+  const activePointsCount = activePoints.length;
 
   return (
     <Card className="w-full overflow-hidden">
@@ -29,13 +43,28 @@ export default function MapView() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div>
             <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
-              <CardTitle className="text-sm sm:text-base md:text-lg">🗺️ แผนที่พิกัดระบาดวิทยา (18 อำเภอ)</CardTitle>
+              <CardTitle className="text-sm sm:text-base md:text-lg">
+                🗺️ แผนที่พิกัดระบาดวิทยา ({selectedDistrictName})
+              </CardTitle>
               <Badge variant="outline" className="text-[10px] bg-blue-50 text-blue-700 border-blue-200">
                 พ.ศ. {selectedYear}
               </Badge>
+              {selectedDistrict !== 'all' && (
+                <Badge variant="outline" className="text-[10px] bg-amber-50 text-amber-800 border-amber-300 flex items-center gap-1 font-semibold">
+                  <span>📍 กรองเฉพาะ: {selectedDistrictName}</span>
+                  <button 
+                    type="button" 
+                    onClick={() => setSelectedDistrict('all')} 
+                    className="hover:text-red-700 font-bold cursor-pointer ml-0.5"
+                    title="ล้างตัวกรองอำเภอ"
+                  >
+                    ✕
+                  </button>
+                </Badge>
+              )}
             </div>
             <p className="text-[11px] text-muted-foreground mt-0.5">
-              แสดงจุดเกิดเหตุระดับหมู่บ้านและพื้นที่ควบคุมโรคระบาดสัตว์ชั่วคราว
+              แสดงจุดเกิดเหตุระดับหมู่บ้านและพื้นที่ควบคุมโรคระบาดสัตว์ชั่วคราว ({activePointsCount} จุดพิกัด)
             </p>
           </div>
 
