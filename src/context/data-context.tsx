@@ -35,6 +35,31 @@ export const isDistrictMatch = (itemDistrict?: string, filterDistrict?: string):
 
   return cleanItem.includes(cleanTarget) || cleanTarget.includes(cleanItem);
 };
+
+export const THAI_MONTH_DEFS = [
+  { short: 'ม.ค.', patterns: ['มกราคม', 'ม.ค.', '-01-', '/01/'] },
+  { short: 'ก.พ.', patterns: ['กุมภาพันธ์', 'ก.พ.', '-02-', '/02/'] },
+  { short: 'มี.ค.', patterns: ['มีนาคม', 'มี.ค.', '-03-', '/03/'] },
+  { short: 'เม.ย.', patterns: ['เมษายน', 'เม.ย.', '-04-', '/04/'] },
+  { short: 'พ.ค.', patterns: ['พฤษภาคม', 'พ.ค.', '-05-', '/05/'] },
+  { short: 'มิ.ย.', patterns: ['มิถุนายน', 'มิ.ย.', '-06-', '/06/'] },
+  { short: 'ก.ค.', patterns: ['กรกฎาคม', 'ก.ค.', '-07-', '/07/'] },
+  { short: 'ส.ค.', patterns: ['สิงหาคม', 'ส.ค.', '-08-', '/08/'] },
+  { short: 'ก.ย.', patterns: ['กันยายน', 'ก.ย.', '-09-', '/09/'] },
+  { short: 'ต.ค.', patterns: ['ตุลาคม', 'ต.ค.', '-10-', '/10/'] },
+  { short: 'พ.ย.', patterns: ['พฤศจิกายน', 'พ.ย.', '-11-', '/11/'] },
+  { short: 'ธ.ค.', patterns: ['ธันวาคม', 'ธ.ค.', '-12-', '/12/'] },
+];
+
+export const getThaiMonthShort = (dateStr?: string): string | null => {
+  if (!dateStr) return null;
+  for (const m of THAI_MONTH_DEFS) {
+    for (const pat of m.patterns) {
+      if (dateStr.includes(pat)) return m.short;
+    }
+  }
+  return null;
+};
 import {
   hashWithSalt,
   generateSalt,
@@ -832,36 +857,30 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       return baseTrends;
     }
 
-    const months = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
     const monthDataMap: Record<string, { exposures: number; positive: number }> = {};
-    months.forEach(m => { monthDataMap[m] = { exposures: 0, positive: 0 }; });
+    THAI_MONTH_DEFS.forEach(m => { monthDataMap[m.short] = { exposures: 0, positive: 0 }; });
 
     filteredAlertsByYearAndDistrict.forEach((a: Alert) => {
-      if (a.date_thai) {
-        months.forEach(m => {
-          if (a.date_thai?.includes(m)) {
-            monthDataMap[m].positive++;
-          }
-        });
+      const dateStr = a.date_thai || a.created_at || a.lab_date;
+      const mKey = getThaiMonthShort(dateStr);
+      if (mKey && monthDataMap[mKey]) {
+        monthDataMap[mKey].positive++;
       }
     });
 
     filteredPatientsByYearAndDistrict.forEach((p: PatientListItem) => {
-      if (p.exposure_date) {
-        months.forEach((m, idx) => {
-          const monthNum = (idx + 1).toString().padStart(2, '0');
-          if (p.exposure_date.includes(`-${monthNum}-`) || p.exposure_date.includes(m)) {
-            monthDataMap[m].exposures++;
-          }
-        });
+      const dateStr = p.exposure_date;
+      const mKey = getThaiMonthShort(dateStr);
+      if (mKey && monthDataMap[mKey]) {
+        monthDataMap[mKey].exposures++;
       }
     });
 
-    return months.map(m => ({
-      month: m,
-      cases: monthDataMap[m].exposures + monthDataMap[m].positive,
-      exposures: monthDataMap[m].exposures,
-      positiveAnimals: monthDataMap[m].positive,
+    return THAI_MONTH_DEFS.map(m => ({
+      month: m.short,
+      cases: monthDataMap[m.short].exposures + monthDataMap[m.short].positive,
+      exposures: monthDataMap[m.short].exposures,
+      positiveAnimals: monthDataMap[m.short].positive,
     }));
   }, [selectedYear, selectedDistrict, filteredAlertsByYearAndDistrict, filteredPatientsByYearAndDistrict]);
 

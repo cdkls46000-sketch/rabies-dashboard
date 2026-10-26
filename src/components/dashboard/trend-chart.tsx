@@ -46,7 +46,7 @@ export default function TrendChart() {
             >
               <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
               <XAxis dataKey="month" stroke="#64748b" fontSize={12} />
-              <YAxis stroke="#64748b" fontSize={12} />
+              <YAxis stroke="#64748b" fontSize={12} allowDecimals={false} />
               <Tooltip 
                 contentStyle={{ 
                   backgroundColor: '#ffffff', 
@@ -62,7 +62,8 @@ export default function TrendChart() {
                 dataKey="cases" 
                 name="รายงานเหตุการณ์รวม (สัตว์+คนสัมผัส)" 
                 stroke="#3b82f6" 
-                strokeWidth={2}
+                strokeWidth={2.5}
+                dot={{ r: 3.5, fill: '#3b82f6' }}
                 activeDot={{ r: 6 }} 
               />
               <Line 
@@ -71,6 +72,8 @@ export default function TrendChart() {
                 name="ผู้สัมผัสโรค (คน)" 
                 stroke="#f97316" 
                 strokeWidth={2}
+                dot={{ r: 3, fill: '#f97316' }}
+                activeDot={{ r: 5 }}
               />
               <Line 
                 type="monotone" 
@@ -78,6 +81,8 @@ export default function TrendChart() {
                 name="สัตว์ตรวจยืนยันผลบวก (+)" 
                 stroke="#ef4444" 
                 strokeWidth={2}
+                dot={{ r: 3, fill: '#ef4444' }}
+                activeDot={{ r: 5 }}
               />
             </LineChart>
           </ResponsiveContainer>
