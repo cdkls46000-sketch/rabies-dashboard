@@ -11,14 +11,8 @@ import {
   AlertTriangle, 
   Skull, 
   Activity,
-  Calendar,
-  FastForward,
-  RotateCcw,
   Search,
   PlusCircle,
-  ShieldCheck,
-  Sparkles,
-  Info,
   ChevronRight,
   ListFilter,
   Check,
@@ -36,8 +30,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { kalasinDistricts } from '@/lib/mock-data';
-
-const BASE_SYSTEM_DATE = new Date('2026-10-26T12:00:00');
 
 export function QuarantineTracker() {
   const { selectedDistrict, selectedDistrictName } = useData();
@@ -64,21 +56,17 @@ export function QuarantineTracker() {
     }
   }, [animals]);
 
-  // การจำลองวันเวลา (+0 วัน, +1 วัน, +3 วัน, +7 วัน, +14 วัน)
-  const [simulatedDays, setSimulatedDays] = useState<number>(0);
   const [activeTab, setActiveTab] = useState<'overview' | 'registry'>('overview');
   const [registryFilter, setRegistryFilter] = useState<'all' | 'active' | 'completed' | 'symptomatic' | 'dead'>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [isAddAnimalOpen, setIsAddAnimalOpen] = useState(false);
 
-  // คำนวณวันที่อ้างอิง ณ ขณะนี้ (Base Date + Simulated Days)
+  // คำนวณวันที่อ้างอิงของระบบอัตโนมัติในเบื้องหลัง (ใช้วันปัจจุบันจริง)
   const referenceDate = useMemo(() => {
-    const d = new Date(BASE_SYSTEM_DATE);
-    d.setDate(d.getDate() + simulatedDays);
-    return d;
-  }, [simulatedDays]);
+    return new Date();
+  }, []);
 
-  // สรุปสถิติไดนามิก 4 กล่อง โดยส่ง referenceDate และ selectedDistrict เข้าไปประมวลผล
+  // สรุปสถิติไดนามิก 4 กล่อง โดยประมวลผลเบื้องหลังอัตโนมัติตามวันจริงและอำเภอที่เลือก
   const summary = useMemo(() => {
     return computeQuarantineSummary(animals, referenceDate, selectedDistrict);
   }, [animals, referenceDate, selectedDistrict]);
@@ -130,7 +118,7 @@ export function QuarantineTracker() {
 
   const handleAddAnimal = (e: React.FormEvent) => {
     e.preventDefault();
-    const todayIso = BASE_SYSTEM_DATE.toISOString().split('T')[0];
+    const todayIso = new Date().toISOString().split('T')[0];
     const newAnimal: QuarantineAnimal = {
       id: `Q-2569-${Date.now()}`,
       code: newCode,
@@ -161,161 +149,68 @@ export function QuarantineTracker() {
     setAnimals(prev => prev.map(a => a.id === id ? { ...a, clinicalStatus: newStatus } : a));
   };
 
-  // แปลงวันที่แบบไทย
-  const formatThaiDate = (d: Date) => {
-    return d.toLocaleDateString('th-TH', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric'
-    });
-  };
-
   return (
     <Card className="rounded-2xl border-slate-200/90 shadow-xs overflow-hidden bg-white">
-      {/* ส่วนหัวการ์ดพร้อมสวิตช์แท็บ & แท็บจำลองวัน */}
-      <CardHeader className="p-4 sm:p-5 pb-3.5 bg-gradient-to-r from-slate-50 via-white to-blue-50/30 border-b border-slate-100">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+      {/* ส่วนหัวการ์ด เรียบหรู สะอาดตา ไม่รกตา */}
+      <CardHeader className="p-4 sm:p-5 pb-3.5 bg-gradient-to-r from-slate-50 via-white to-blue-50/20 border-b border-slate-100">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-start gap-3">
             <div className="p-2.5 rounded-xl bg-blue-600 text-white shadow-xs shrink-0 mt-0.5">
               <Clock size={20} />
             </div>
             <div>
               <div className="flex items-center gap-2 flex-wrap">
-                <CardTitle className="text-base sm:text-lg font-black text-slate-900 tracking-tight">
+                <CardTitle className="text-base sm:text-lg font-bold text-slate-900 tracking-tight">
                   ระบบติดตามและกักสังเกตอาการสัตว์ 14 วัน
                 </CardTitle>
-                <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-blue-100/80 text-blue-800 border border-blue-200">
-                  Dynamic 14-Day Quarantine Engine
-                </span>
-                <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-100/80 text-emerald-800 border border-emerald-200 flex items-center gap-1">
-                  <Sparkles size={11} />
-                  <span>คำนวณไดนามิกตามวันที่จริง</span>
+                <span className="hidden sm:inline-block text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200/60">
+                  14-Day Quarantine Tracker
                 </span>
               </div>
               <CardDescription className="text-xs text-slate-500 mt-1 leading-relaxed">
-                แนวทาง One Health เมื่อสัตว์กัด/ข่วน ให้กักดูอาการ 10-14 วัน — ตัวเลขจะปรับลด/เพิ่มอัตโนมัติเมื่อครบกำหนดเวลา
+                แนวทางปฏิบัติการร่วม One Health เมื่อสัตว์กัด/ข่วนคน ให้กักสัตว์ดูอาการ 10 - 14 วัน ในพื้นที่ปิด (ระบบประมวลผลคำนวณวันและปรับสถานะให้อัตโนมัติ)
               </CardDescription>
             </div>
           </div>
 
-          {/* สวิตช์สลับมุมมอง Overview vs Registry */}
-          <div className="flex items-center gap-1.5 bg-slate-100/90 p-1 rounded-xl self-start lg:self-center shrink-0 border border-slate-200/60">
-            <button
-              type="button"
-              onClick={() => setActiveTab('overview')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
-                activeTab === 'overview'
-                  ? 'bg-white text-blue-700 shadow-2xs font-black'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              <Activity size={13} />
-              <span>ภาพรวมสถิติ</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab('registry')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
-                activeTab === 'registry'
-                  ? 'bg-white text-blue-700 shadow-2xs font-black'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              <ListFilter size={13} />
-              <span>ทะเบียนสัตว์กักกัน ({summary.filteredAnimals.length})</span>
-            </button>
-          </div>
-        </div>
-
-        {/* Dynamic Date Simulator Controls Bar (แถบจำลองเลื่อนวันเพื่อทดสอบระบบ Dynamic) */}
-        <div className="mt-3 pt-3 border-t border-slate-200/60 flex flex-col md:flex-row md:items-center justify-between gap-2.5 bg-blue-50/50 p-2.5 rounded-xl border border-blue-100">
-          <div className="flex items-center gap-2 text-xs">
-            <Calendar size={14} className="text-blue-700 shrink-0" />
-            <span className="font-semibold text-slate-700">วันที่ประมวลผลระบบ:</span>
-            <span className="font-black text-blue-900 bg-white px-2 py-0.5 rounded-md border border-blue-200 shadow-2xs">
-              {formatThaiDate(referenceDate)}
-            </span>
-            {simulatedDays > 0 ? (
-              <Badge className="bg-amber-500 text-white text-[10px] px-1.5 py-0 h-5">
-                จำลองเวลา +{simulatedDays} วัน
-              </Badge>
-            ) : (
-              <Badge variant="outline" className="text-emerald-700 bg-emerald-50 border-emerald-300 text-[10px] px-1.5 py-0 h-5">
-                วันปัจจุบัน (Real-time)
-              </Badge>
-            )}
-          </div>
-
-          <div className="flex items-center gap-1.5 flex-wrap">
-            <span className="text-[11px] text-slate-500 font-medium">ทดสอบเลื่อนวัน:</span>
-            <button
-              type="button"
-              onClick={() => setSimulatedDays(prev => prev + 1)}
-              className="px-2 py-1 rounded bg-white hover:bg-blue-50 text-blue-700 border border-blue-200 text-xs font-bold transition-all flex items-center gap-1 shadow-2xs cursor-pointer"
-              title="เลื่อนวันไปข้างหน้า 1 วัน เพื่อดูสัตว์ที่กักครบ 14 วัน ย้ายกลุ่มอัตโนมัติ"
-            >
-              <FastForward size={11} />
-              <span>+1 วัน</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setSimulatedDays(prev => prev + 3)}
-              className="px-2 py-1 rounded bg-white hover:bg-blue-50 text-blue-700 border border-blue-200 text-xs font-bold transition-all flex items-center gap-1 shadow-2xs cursor-pointer"
-            >
-              <FastForward size={11} />
-              <span>+3 วัน</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setSimulatedDays(prev => prev + 7)}
-              className="px-2 py-1 rounded bg-white hover:bg-blue-50 text-blue-700 border border-blue-200 text-xs font-bold transition-all flex items-center gap-1 shadow-2xs cursor-pointer"
-            >
-              <FastForward size={11} />
-              <span>+7 วัน</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setSimulatedDays(prev => prev + 14)}
-              className="px-2 py-1 rounded bg-white hover:bg-blue-50 text-blue-700 border border-blue-200 text-xs font-bold transition-all flex items-center gap-1 shadow-2xs cursor-pointer"
-            >
-              <FastForward size={11} />
-              <span>+14 วัน</span>
-            </button>
-            {simulatedDays > 0 && (
+          <div className="flex items-center gap-2 shrink-0">
+            {/* สวิตช์สลับมุมมอง Overview vs Registry */}
+            <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200/60">
               <button
                 type="button"
-                onClick={() => setSimulatedDays(0)}
-                className="px-2 py-1 rounded bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-bold transition-all flex items-center gap-1 shadow-2xs cursor-pointer"
+                onClick={() => setActiveTab('overview')}
+                className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer ${
+                  activeTab === 'overview'
+                    ? 'bg-white text-blue-700 shadow-2xs font-bold'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
               >
-                <RotateCcw size={11} />
-                <span>รีเซ็ตเป็นวันนี้</span>
+                <Activity size={13} />
+                <span>ภาพรวม</span>
               </button>
-            )}
+              <button
+                type="button"
+                onClick={() => setActiveTab('registry')}
+                className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer ${
+                  activeTab === 'registry'
+                    ? 'bg-white text-blue-700 shadow-2xs font-bold'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <ListFilter size={13} />
+                <span>ทะเบียนสัตว์กักกัน ({summary.filteredAnimals.length})</span>
+              </button>
+            </div>
+
+            <Badge variant="outline" className="bg-blue-50/80 text-blue-700 border-blue-200 text-xs w-fit font-medium hidden md:inline-flex shadow-2xs">
+              เกณฑ์กรมปศุสัตว์ & WHO
+            </Badge>
           </div>
         </div>
       </CardHeader>
 
       <CardContent className="p-4 sm:p-5 pt-4 space-y-4">
-        {/* Dynamic Alert Banner เมื่อมีการเลื่อนวัน */}
-        {simulatedDays > 0 && (
-          <div className="p-3 bg-gradient-to-r from-amber-50 to-emerald-50 border border-amber-200/80 rounded-xl text-xs flex items-center justify-between gap-2 shadow-2xs animate-in fade-in duration-300">
-            <div className="flex items-center gap-2">
-              <Sparkles size={16} className="text-amber-600 shrink-0" />
-              <span className="text-slate-800 leading-snug">
-                <strong>กลไกการปรับสถานะอัตโนมัติ (Auto-Graduation):</strong> เมื่อเวลาเดินหน้าไป +{simulatedDays} วัน สัตว์ที่กักสะสมครบ 14 วัน และไม่มีอาการผิดปกติ จะถูกย้ายจาก <strong>"อยู่ระหว่างกัก"</strong> ไปบวกเพิ่มที่ <strong>"กักครบ 14 วัน ปกติ"</strong> โดยอัตโนมัติ
-              </span>
-            </div>
-            <button
-              type="button"
-              onClick={() => setActiveTab('registry')}
-              className="text-blue-700 hover:text-blue-900 font-bold underline shrink-0 cursor-pointer"
-            >
-              ดูรายชื่อสัตว์ &gt;
-            </button>
-          </div>
-        )}
-
-        {/* 4 Stats Grid: Dynamic Calculation */}
+        {/* 4 Stats Grid: Dynamic Calculation แสดงตัวเลขชัดเจน สวยงาม */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           {/* Box 1: อยู่ระหว่างกัก */}
           <div className="relative overflow-hidden rounded-2xl border border-blue-200/90 bg-gradient-to-br from-blue-50/90 via-white to-blue-50/30 p-3.5 sm:p-4 shadow-2xs hover:shadow-xs transition-all">
@@ -327,9 +222,7 @@ export function QuarantineTracker() {
                 </div>
                 <span>อยู่ระหว่างกัก</span>
               </span>
-              <span className="text-[10px] bg-blue-100 text-blue-800 font-bold px-1.5 py-0.5 rounded">
-                Active &lt; 14 วัน
-              </span>
+              <span className="text-[10px] bg-blue-100 text-blue-800 font-bold px-1.5 py-0.5 rounded">Active</span>
             </div>
             <div className="flex items-baseline gap-1.5 my-0.5">
               <span className="text-2xl sm:text-3xl font-black text-blue-950 tracking-tight">
@@ -352,9 +245,7 @@ export function QuarantineTracker() {
                 </div>
                 <span>กักครบ 14 วัน</span>
               </span>
-              <span className="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-1.5 py-0.5 rounded">
-                ปกติ {summary.safePercent}%
-              </span>
+              <span className="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-1.5 py-0.5 rounded">ปกติ {summary.safePercent}%</span>
             </div>
             <div className="flex items-baseline gap-1.5 my-0.5">
               <span className="text-2xl sm:text-3xl font-black text-emerald-950 tracking-tight">
@@ -362,9 +253,7 @@ export function QuarantineTracker() {
               </span>
               <span className="text-xs font-semibold text-emerald-700">ตัว</span>
             </div>
-            <p className="text-[11px] text-emerald-800/90 font-medium">
-              พ้นระยะสงสัย ปลอดภัย (Auto-Graduated)
-            </p>
+            <p className="text-[11px] text-emerald-800/90 font-medium">พ้นระยะสงสัย ปลอดภัย</p>
           </div>
 
           {/* Box 3: แสดงอาการสงสัย */}
@@ -377,9 +266,7 @@ export function QuarantineTracker() {
                 </div>
                 <span>แสดงอาการสงสัย</span>
               </span>
-              <span className="text-[10px] bg-amber-100 text-amber-800 font-bold px-1.5 py-0.5 rounded">
-                Watch &amp; Isolate
-              </span>
+              <span className="text-[10px] bg-amber-100 text-amber-800 font-bold px-1.5 py-0.5 rounded">Watch</span>
             </div>
             <div className="flex items-baseline gap-1.5 my-0.5">
               <span className="text-2xl sm:text-3xl font-black text-amber-950 tracking-tight">
@@ -387,9 +274,7 @@ export function QuarantineTracker() {
               </span>
               <span className="text-xs font-semibold text-amber-700">ตัว</span>
             </div>
-            <p className="text-[11px] text-amber-800/90 font-medium">
-              แยกกรงเดี่ยว เฝ้าระวังอาการทางประสาท
-            </p>
+            <p className="text-[11px] text-amber-800/90 font-medium">เฝ้าระวังอาการทางประสาท</p>
           </div>
 
           {/* Box 4: ตายระหว่างกัก */}
@@ -402,9 +287,7 @@ export function QuarantineTracker() {
                 </div>
                 <span>ตายระหว่างกัก</span>
               </span>
-              <span className="text-[10px] bg-red-100 text-red-800 font-bold px-1.5 py-0.5 rounded">
-                ผลบวก 100%
-              </span>
+              <span className="text-[10px] bg-red-100 text-red-800 font-bold px-1.5 py-0.5 rounded">ผลบวก 100%</span>
             </div>
             <div className="flex items-baseline gap-1.5 my-0.5">
               <span className="text-2xl sm:text-3xl font-black text-red-950 tracking-tight">
@@ -412,9 +295,7 @@ export function QuarantineTracker() {
               </span>
               <span className="text-xs font-semibold text-red-700">ตัว</span>
             </div>
-            <p className="text-[11px] text-red-800/90 font-medium">
-              ส่งตรวจหัวสัตว์ที่ ศวพ. ยืนยันเชื้อ
-            </p>
+            <p className="text-[11px] text-red-800/90 font-medium">ส่งตรวจ Lab ยืนยันเชื้อ</p>
           </div>
         </div>
 
@@ -431,7 +312,7 @@ export function QuarantineTracker() {
                 onClick={() => setActiveTab('registry')}
                 className="text-[11px] text-blue-600 font-bold hover:underline flex items-center gap-1 cursor-pointer"
               >
-                <span>เปิดดูประวัติสัตว์ทั้ง {summary.filteredAnimals.length} ตัว</span>
+                <span>ดูบัญชีสัตว์กักกันทั้ง {summary.filteredAnimals.length} ตัว</span>
                 <ChevronRight size={13} />
               </button>
             </div>
@@ -672,7 +553,7 @@ export function QuarantineTracker() {
 
                       {/* Quick Status Control Buttons */}
                       <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-1 text-[11px]">
-                        <span className="text-[10px] text-slate-400">เปลี่ยนสถานะ:</span>
+                        <span className="text-[10px] text-slate-400">ปรับสถานะ:</span>
                         <div className="flex items-center gap-1">
                           {item.clinicalStatus !== 'normal' && (
                             <button
